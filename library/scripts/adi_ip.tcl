@@ -1,9 +1,7 @@
-## ###############################################################################################
-## ###############################################################################################
 
 source $ad_hdl_dir/library/scripts/adi_xilinx_device_info_enc.tcl
 
-## check tool version
+# check tool version
 
 if {![info exists REQUIRED_VIVADO_VERSION]} {
   set REQUIRED_VIVADO_VERSION "2018.3"
@@ -15,10 +13,12 @@ if {[info exists ::env(ADI_IGNORE_VERSION_CHECK)]} {
   set IGNORE_VERSION_CHECK 0
 }
 
-## ###############################################################################################
-## ###############################################################################################
-## ip related stuff
-
+## adi_ip_ttcl - Add a ttcl file to the project. XDC does not support if statements
+# in constraint definitions, this file can be used to add parameter dependent
+# constraints to the IP.
+# @param[ip_name] - IP name
+# @param[ip_constr_files] - .ttcl file name (full path)
+#
 proc adi_ip_ttcl {ip_name ip_constr_files} {
 
   set proj_filegroup [ipx::get_file_groups -of_objects [ipx::current_core] -filter {NAME =~ *synthesis*}]
@@ -29,7 +29,12 @@ proc adi_ip_ttcl {ip_name ip_constr_files} {
   ipx::reorder_files -front $ip_constr_files $proj_filegroup
 }
 
-# add ttcl file to the simulation file set
+# adi_ip_sim_ttcl - Add ttcl file to generate simulation files for System Verilog
+# environments
+#
+# @param[ip_name] - IP name
+# @param[ip_constr_files] - .ttcl file name (full path)
+#
 proc adi_ip_sim_ttcl {ip_name ip_files} {
 
   set proj_filegroup [ipx::get_file_groups -of_objects [ipx::current_core] -filter {NAME =~ *simulation*}]
@@ -40,6 +45,10 @@ proc adi_ip_sim_ttcl {ip_name ip_files} {
   ipx::reorder_files -front $ip_files $proj_filegroup
 }
 
+## adi_ip_bd - Add a block design, defined by a tcl source, to the IP
+# @param[ip_name] - IP name
+# @param[ip_bd_files] - Tcl source file
+#
 proc adi_ip_bd {ip_name ip_bd_files} {
   set proj_filegroup [ipx::get_file_groups xilinx_blockdiagram -of_objects [ipx::current_core]]
   if {$proj_filegroup == {}} {
@@ -54,18 +63,34 @@ proc adi_ip_bd {ip_name ip_bd_files} {
   }
 }
 
+## adi_ip_infer_streaming_interfaces - Infers an AXI Streaming interface. Note that
+# the interface have to physicaly exist. -- NVU
+# @param[ip_name] - IP name
+#
 proc adi_ip_infer_streaming_interfaces {ip_name} {
 
   ipx::infer_bus_interfaces xilinx.com:interface:axis_rtl:1.0 [ipx::current_core]
 
 }
 
+## adi_ip_infer_mm_interfaces - Infers an AXI Memory Mapped interface. Note that
+# the interface have to physicaly exist. -- NVU
+# @param[ip_name] - The ip name
+#
 proc adi_ip_infer_mm_interfaces {ip_name} {
 
   ipx::infer_bus_interfaces xilinx.com:interface:aximm_rtl:1.0 [ipx::current_core]
 
 }
 
+## adi_set_ports_dependency - Defines a dependency for a port
+# @param[port_prefix] - Port prefix, which defines an interface. All ports of an
+# interface must have the same prefix. If it's a single port, the whole name
+# shall be defined.
+# @param[dependency] - Dependency (e.g "PARAMETER_NAME == 1") ??? {spirit:decode(id('MODELPARAM_VALUE.PARAM_NAME')) == CONST}
+# @param[driver_value] - Driver value is optional. It defines the default driver
+# value of the port.
+#
 proc adi_set_ports_dependency {port_prefix dependency {driver_value {}}} {
   foreach port [ipx::get_ports [format "%s%s" $port_prefix "*"]] {
     set_property ENABLEMENT_DEPENDENCY $dependency $port
@@ -75,16 +100,39 @@ proc adi_set_ports_dependency {port_prefix dependency {driver_value {}}} {
   }
 }
 
+## adi_set_bus_dependency - Defines a dependency for a bus
+# @param[bus] - Name of the bus
+# @param[prefix] - Port prefix, in general same as the name of the bus
+# @param[dependency] - Dependency (e.g "PARAMETER_NAME == 1") ??? {spirit:decode(id('MODELPARAM_VALUE.PARAM_NAME')) == CONST}
+#
 proc adi_set_bus_dependency {bus prefix dependency} {
   set_property ENABLEMENT_DEPENDENCY $dependency [ipx::get_bus_interfaces $bus -of_objects [ipx::current_core]]
   adi_set_ports_dependency $prefix $dependency 0
 }
 
+## adi_add_port_map - Add a new port map definition to a bus interface.
+# @param[bus] - Name of the bus interface
+# @param[phys] - Physical name of the port
+# @param[logic] - Logic name of the port (defined by the interface)
+#
 proc adi_add_port_map {bus phys logic} {
   set map [ipx::add_port_map $phys $bus]
   set_property "PHYSICAL_NAME" $phys $map
   set_property "LOGICAL_NAME" $logic $map
 }
+
+## adi_add_bus - Infers a new bus interface to an IP
+# @param[bus_name] - Bus name
+# @param[mode] - Interface mode (master/slave)
+# @param[abs_type] - Abstraction type, example: "xilinx.com:interface:axis_rtl:1.0"
+# @param[bus_type] - Bus type, example: "xilinx.com:interface:axis:1.0"
+# @param[port_maps] - Port map
+#
+# <b>Port map example:\n
+#    [list \n
+#        {"m_axis_ready" "TREADY"}\n
+#        {"m_axis_valid" "TVALID"}\n
+#        {"m_axis_data" "TDATA"} ]\n
 
 proc adi_add_bus {bus_name mode abs_type bus_type port_maps} {
   set bus [ipx::add_bus_interface $bus_name [ipx::current_core]]
@@ -98,8 +146,20 @@ proc adi_add_bus {bus_name mode abs_type bus_type port_maps} {
   }
 }
 
+## adi_add_multi_bus - Add multiple bus interfaces of the same type to an IP
+# @param[num] - Number of interfaces
+# @param[bus_name_prefix] - Prefix of the name of the interface
+# @param[mode] - Interface mode (master/slave)
+# @param[abs_type] - Abstraction type, example: "xilinx.com:interface:axis_rtl:1.0"
+# @param[bus_type] - Bus type, example: "xilinx.com:interface:axis:1.0"
+# @param[port_maps] - Port map, example: [list \n
+#                                           {"m_axis_ready" "TREADY"}\n
+#                                           {"m_axis_valid" "TVALID"}\n:
+#                                           {"m_axis_data" "TDATA"} ]\n
+# @param[dependency] - Dependency (e.g "PARAMETER_NAME == 1") ??? {spirit:decode(id('MODELPARAM_VALUE.PARAM_NAME')) == CONST}
+#
 proc adi_add_multi_bus {num bus_name_prefix mode abs_type bus_type port_maps dependency} {
-  for {set i 0} {$i < 8} {incr i} {
+  for {set i 0} {$i < $num} {incr i} {
     set bus_name [format "%s%d" $bus_name_prefix $i]
     set bus [ipx::add_bus_interface $bus_name [ipx::current_core]]
 
@@ -123,6 +183,13 @@ proc adi_add_multi_bus {num bus_name_prefix mode abs_type bus_type port_maps dep
   }
 }
 
+## adi_add_bus_clock - Assign clock and reset to an interface bus
+# @param[clock_signal_name] - Clock name
+# @param[bus_inf_name] - Interface bus name. Note: If multiple interfaces uses
+# the same clock, all shall be defined here. (e.g. "s_axis:m_axis")
+# @param[reset_signal_name] - Reset signal name
+# @param[reset_signal_mode] - Reset mode (master/slave)
+#
 proc adi_add_bus_clock {clock_signal_name bus_inf_name {reset_signal_name ""} {reset_signal_mode "slave"}} {
   set bus_inf_name_clean [string map {":" "_"} $bus_inf_name]
   set clock_inf_name [format "%s%s" $bus_inf_name_clean "_signal_clock"]
@@ -158,6 +225,10 @@ proc adi_add_bus_clock {clock_signal_name bus_inf_name {reset_signal_name ""} {r
   }
 }
 
+## adi_ip_add_core_dependencies - Add dependencies to other IPs, which other IP's
+# instantiated into the current core.
+# @param[vlnvs] - VLNVs of the instantiated IPs (e.g. "analog.com:user:util_cdc:1.0")
+#
 proc adi_ip_add_core_dependencies {vlnvs} {
   foreach file_group [ipx::get_file_groups * -of_objects [ipx::current_core]] {
     foreach vlnv $vlnvs {
@@ -166,12 +237,13 @@ proc adi_ip_add_core_dependencies {vlnvs} {
   }
 }
 
-## ###############################################################################################
-## ###############################################################################################
-## ip related stuff
-
+## List of all constraint files
+#
 variable ip_constr_files
 
+## adi_ip_create - Create a project which will be packed as an IP
+# @param[ip_name] - IP name
+#
 proc adi_ip_create {ip_name} {
 
   global ad_hdl_dir
@@ -202,6 +274,10 @@ proc adi_ip_create {ip_name} {
   update_ip_catalog
 }
 
+## adi_ip_files - Add all source files to the IP's project
+# @param[ip_name] - The ip name
+# @param[ip_files] - IP files (*.v *.vhd *.xdc)
+#
 proc adi_ip_files {ip_name ip_files} {
 
   global ip_constr_files
@@ -218,6 +294,10 @@ proc adi_ip_files {ip_name ip_files} {
   set_property "top" "$ip_name" $proj_fileset
 }
 
+## adi_ip_properties_lite - Pack the IP and set its proprieties
+#
+# @param[ip_name] - The ip name
+#
 proc adi_ip_properties_lite {ip_name} {
 
   global ip_constr_files
@@ -258,6 +338,10 @@ proc adi_ip_properties_lite {ip_name} {
   ipx::save_core
 }
 
+## adi_ip_properties - Set AXI interface IP proprieties
+#
+# @param[ip_name] - The ip name
+#
 proc adi_ip_properties {ip_name} {
 
   adi_ip_properties_lite $ip_name
@@ -273,6 +357,7 @@ proc adi_ip_properties {ip_name} {
     s_axi_wready \
     s_axi_bvalid \
     s_axi_bresp \
+
     s_axi_bready \
     s_axi_arvalid \
     s_axi_araddr \
@@ -310,8 +395,10 @@ proc adi_ip_properties {ip_name} {
   ipx::save_core
 }
 
-# ##############################################################################
-# create/overwrite temporary files containing particular build case dependencies
+##
+# adi_init_bd_tcl - Create/overwrite temporary files containing particular
+# build case dependencies
+#
 # DO NOT USE FOR:
 # - axi_dmac
 # - jesd204
@@ -467,6 +554,9 @@ proc adi_add_device_spec_param {ip_param} {
 ## ###############################################################################################
 ## interface related stuff
 
+##  adi_if_define - Define a custom interface bus
+# @param[name] - Interface name
+#
 proc adi_if_define {name} {
 
   ipx::create_abstraction_definition analog.com interface ${name}_rtl 1.0
@@ -480,6 +570,12 @@ proc adi_if_define {name} {
   ipx::save_bus_definition [ipx::current_busdef]
 }
 
+## adi_if_ports - Add ports to a custom interface bus
+# @param[dir] - Port direction
+# @param[width] - Port width
+# @param[name] - Port logical name
+# @param[type] - Type of the port (default "none")
+#
 proc adi_if_ports {dir width name {type none}} {
 
   ipx::add_bus_abstraction_port $name [ipx::current_busabs]
@@ -496,7 +592,7 @@ proc adi_if_ports {dir width name {type none}} {
     set s_dir "in"
   }
 
-  set_property master_direction $m_dir $m_intf
+  set_property master_direction $m_dir $m_intfadi_if_infer_bus
   set_property slave_direction  $s_dir $m_intf
 
   if {$type ne "none"} {
@@ -507,6 +603,12 @@ proc adi_if_ports {dir width name {type none}} {
   ipx::save_abstraction_definition [ipx::current_busabs]
 }
 
+## adi_if_infer_bus - Infers a new bus interface to an IP
+# @param[if_name] -  Interface bus name
+# @param[mode] - Type of the interface bus (master/slave)
+# @param[name] - Interface bus instance name
+# @param[maps] - Mapping of the physical ports
+#
 proc adi_if_infer_bus {if_name mode name maps} {
 
   ipx::add_bus_interface $name [ipx::current_core]
