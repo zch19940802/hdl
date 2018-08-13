@@ -399,7 +399,7 @@ proc ad_ip_modfile {ifile ofile flist} {
 
   global ad_hdl_dir
 
-  set srcfile [open ${ad_hdl_dir}/library/altera/common/${ifile} r]
+  set srcfile [open ${ad_hdl_dir}/library/intel/common/${ifile} r]
   set dstfile [open ${ofile} w]
 
   regsub {\..$} $ifile {} imodule

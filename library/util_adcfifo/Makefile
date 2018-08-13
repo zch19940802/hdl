@@ -13,7 +13,7 @@ XILINX_DEPS += ../common/ad_mem_asym.v
 XILINX_DEPS += util_adcfifo_constr.xdc
 XILINX_DEPS += util_adcfifo_ip.tcl
 
-ALTERA_DEPS += util_adcfifo_constr.sdc
-ALTERA_DEPS += util_adcfifo_hw.tcl
+INTEL_DEPS += util_adcfifo_constr.sdc
+INTEL_DEPS += util_adcfifo_hw.tcl
 
 include ../scripts/library.mk
