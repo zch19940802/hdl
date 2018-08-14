@@ -23,7 +23,7 @@
 
 package require qsys
 source ../../scripts/adi_env.tcl
-source ../../scripts/adi_ip_alt.tcl
+source ../../scripts/adi_ip_intel.tcl
 
 ad_ip_create util_upack2 {Channel Unpack Utility v2} util_upack_elab
 ad_ip_files util_upack2_impl [list \
@@ -99,7 +99,7 @@ proc util_upack_elab {} {
     set_port_property fifo_rd_en_${n} fragment_list "fifo_rd_en(${n})"
     add_interface_port dac_ch_${n} fifo_rd_valid_${n} data_valid Output 1
     set_port_property fifo_rd_valid_${n} fragment_list "fifo_rd_valid(0)"
-    add_interface_port dac_ch_${n} fifo_rd_data_${n} data Output $channel_data_width 
+    add_interface_port dac_ch_${n} fifo_rd_data_${n} data Output $channel_data_width
     set_port_property fifo_rd_data_${n} fragment_list [format "fifo_rd_data(%d:%d)" \
       [expr ($n+1) * $channel_data_width - 1] [expr $n * $channel_data_width]]
     set_interface_property dac_ch_${n} associatedClock clk
