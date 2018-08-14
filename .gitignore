@@ -75,5 +75,5 @@ reconfig_mif
 *.xml
 *.hw
 gui
-.timestamp_altera
+.timestamp_intel
 
