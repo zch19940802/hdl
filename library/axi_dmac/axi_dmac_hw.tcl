@@ -302,36 +302,36 @@ add_interface_port m_src_axi_reset m_src_axi_aresetn reset_n Input 1
 
 # axis destination/source
 
-ad_alt_intf clock   m_axis_aclk       input   1                       clk
-ad_alt_intf signal  m_axis_valid      output  1                       valid
-ad_alt_intf signal  m_axis_data       output  DMA_DATA_WIDTH_DEST     data
-ad_alt_intf signal  m_axis_ready      input   1                       ready
-ad_alt_intf signal  m_axis_last       output  1                       last
-ad_alt_intf signal  m_axis_xfer_req   output  1                       xfer_req
+ad_interface clock   m_axis_aclk       input   1                       clk
+ad_interface signal  m_axis_valid      output  1                       valid
+ad_interface signal  m_axis_data       output  DMA_DATA_WIDTH_DEST     data
+ad_interface signal  m_axis_ready      input   1                       ready
+ad_interface signal  m_axis_last       output  1                       last
+ad_interface signal  m_axis_xfer_req   output  1                       xfer_req
 
-ad_alt_intf clock   s_axis_aclk       input   1                       clk
-ad_alt_intf signal  s_axis_valid      input   1                       valid
-ad_alt_intf signal  s_axis_data       input   DMA_DATA_WIDTH_SRC      data
-ad_alt_intf signal  s_axis_ready      output  1                       ready
-ad_alt_intf signal  s_axis_last       input   1                       last
-ad_alt_intf signal  s_axis_xfer_req   output  1                       xfer_req
-ad_alt_intf signal  s_axis_user       input   1                       user
+ad_interface clock   s_axis_aclk       input   1                       clk
+ad_interface signal  s_axis_valid      input   1                       valid
+ad_interface signal  s_axis_data       input   DMA_DATA_WIDTH_SRC      data
+ad_interface signal  s_axis_ready      output  1                       ready
+ad_interface signal  s_axis_last       input   1                       last
+ad_interface signal  s_axis_xfer_req   output  1                       xfer_req
+ad_interface signal  s_axis_user       input   1                       user
 
 # fifo destination/source
 
-ad_alt_intf clock   fifo_rd_clk       input   1                       clk
-ad_alt_intf signal  fifo_rd_en        input   1                       valid
-ad_alt_intf signal  fifo_rd_valid     output  1                       valid
-ad_alt_intf signal  fifo_rd_dout      output  DMA_DATA_WIDTH_DEST     data
-ad_alt_intf signal  fifo_rd_underflow output  1                       unf
-ad_alt_intf signal  fifo_rd_xfer_req  output  1                       xfer_req
+ad_interface clock   fifo_rd_clk       input   1                       clk
+ad_interface signal  fifo_rd_en        input   1                       valid
+ad_interface signal  fifo_rd_valid     output  1                       valid
+ad_interface signal  fifo_rd_dout      output  DMA_DATA_WIDTH_DEST     data
+ad_interface signal  fifo_rd_underflow output  1                       unf
+ad_interface signal  fifo_rd_xfer_req  output  1                       xfer_req
 
-ad_alt_intf clock   fifo_wr_clk       input   1                       clk
-ad_alt_intf signal  fifo_wr_en        input   1                       valid
-ad_alt_intf signal  fifo_wr_din       input   DMA_DATA_WIDTH_SRC      data
-ad_alt_intf signal  fifo_wr_overflow  output  1                       ovf
-ad_alt_intf signal  fifo_wr_sync      input   1                       sync
-ad_alt_intf signal  fifo_wr_xfer_req  output  1                       xfer_req
+ad_interface clock   fifo_wr_clk       input   1                       clk
+ad_interface signal  fifo_wr_en        input   1                       valid
+ad_interface signal  fifo_wr_din       input   DMA_DATA_WIDTH_SRC      data
+ad_interface signal  fifo_wr_overflow  output  1                       ovf
+ad_interface signal  fifo_wr_sync      input   1                       sync
+ad_interface signal  fifo_wr_xfer_req  output  1                       xfer_req
 
 proc add_axi_master_interface {axi_type port suffix} {
   add_interface $port $axi_type start

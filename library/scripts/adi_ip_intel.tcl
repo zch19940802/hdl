@@ -2,7 +2,7 @@
 ###################################################################################################
 # keep interface-mess out of the way - keeping it pretty is a waste of time
 
-proc ad_alt_intf {type name dir width {arg_1 ""} {arg_2 ""}} {
+proc ad_interface {type name dir width {arg_1 ""} {arg_2 ""}} {
 
   if {([string equal -nocase ${type} "clock"]) && ([string equal -nocase ${dir} "input"])} {
     add_interface if_${name} clock sink

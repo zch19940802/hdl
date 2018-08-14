@@ -45,17 +45,17 @@ proc p_util_adcfifo {} {
 
   # interfaces
 
-  ad_alt_intf clock adc_clk input 1 adc_clk
-  ad_alt_intf reset adc_rst input 1 if_adc_clk
-  ad_alt_intf signal adc_wr input 1 valid
-  ad_alt_intf signal adc_wdata input ADC_DATA_WIDTH data
-  ad_alt_intf signal adc_wovf output 1 ovf
+  ad_interface clock adc_clk input 1 adc_clk
+  ad_interface reset adc_rst input 1 if_adc_clk
+  ad_interface signal adc_wr input 1 valid
+  ad_interface signal adc_wdata input ADC_DATA_WIDTH data
+  ad_interface signal adc_wovf output 1 ovf
 
-  ad_alt_intf clock dma_clk input 1 clk
-  ad_alt_intf signal dma_wr output 1 valid
-  ad_alt_intf signal dma_wdata output DMA_DATA_WIDTH data
-  ad_alt_intf signal dma_wready input 1 ready
-  ad_alt_intf signal dma_xfer_req input 1 xfer_req
-  ad_alt_intf signal dma_xfer_status output 4 xfer_status
+  ad_interface clock dma_clk input 1 clk
+  ad_interface signal dma_wr output 1 valid
+  ad_interface signal dma_wdata output DMA_DATA_WIDTH data
+  ad_interface signal dma_wready input 1 ready
+  ad_interface signal dma_xfer_req input 1 xfer_req
+  ad_interface signal dma_xfer_status output 4 xfer_status
 }
 

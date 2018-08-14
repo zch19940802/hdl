@@ -21,20 +21,20 @@ ad_ip_parameter DATA_WIDTH INTEGER 128
 
 # interfaces
 
-ad_alt_intf clock dma_clk input 1 clk
-ad_alt_intf reset dma_rst input 1 if_dma_clk
-ad_alt_intf signal dma_valid input 1 valid
-ad_alt_intf signal dma_data input DATA_WIDTH data
-ad_alt_intf signal dma_ready output 1 ready
-ad_alt_intf signal dma_xfer_req input 1 xfer_req
-ad_alt_intf signal dma_xfer_last input 1 last
+ad_interface clock dma_clk input 1 clk
+ad_interface reset dma_rst input 1 if_dma_clk
+ad_interface signal dma_valid input 1 valid
+ad_interface signal dma_data input DATA_WIDTH data
+ad_interface signal dma_ready output 1 ready
+ad_interface signal dma_xfer_req input 1 xfer_req
+ad_interface signal dma_xfer_last input 1 last
 
-ad_alt_intf clock dac_clk input 1
-ad_alt_intf reset dac_rst input 1 if_dac_clk
-ad_alt_intf signal dac_valid input 1 valid
-ad_alt_intf signal dac_data output DATA_WIDTH data
-ad_alt_intf signal dac_xfer_out output 1 xfer_req
-ad_alt_intf signal dac_dunf output 1 unf
+ad_interface clock dac_clk input 1
+ad_interface reset dac_rst input 1 if_dac_clk
+ad_interface signal dac_valid input 1 valid
+ad_interface signal dac_data output DATA_WIDTH data
+ad_interface signal dac_xfer_out output 1 xfer_req
+ad_interface signal dac_dunf output 1 unf
 
-ad_alt_intf signal bypass input 1 bypass
+ad_interface signal bypass input 1 bypass
 
