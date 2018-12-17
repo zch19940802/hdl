@@ -68,6 +68,7 @@ clean:
 	$(MAKE) -C cn0363/cn0363_dma_sequencer clean
 	$(MAKE) -C cn0363/cn0363_phase_data_sync clean
 	$(MAKE) -C cordic_demod clean
+	$(MAKE) -C frame_combiner clean
 	$(MAKE) -C jesd204/ad_ip_jesd204_tpl_adc clean
 	$(MAKE) -C jesd204/ad_ip_jesd204_tpl_dac clean
 	$(MAKE) -C jesd204/axi_jesd204_common clean
@@ -177,6 +178,7 @@ lib:
 	$(MAKE) -C cn0363/cn0363_dma_sequencer
 	$(MAKE) -C cn0363/cn0363_phase_data_sync
 	$(MAKE) -C cordic_demod
+	$(MAKE) -C frame_combiner
 	$(MAKE) -C jesd204/ad_ip_jesd204_tpl_adc
 	$(MAKE) -C jesd204/ad_ip_jesd204_tpl_dac
 	$(MAKE) -C jesd204/axi_jesd204_common
