@@ -1,6 +1,8 @@
 
 source $ad_hdl_dir/library/jesd204/scripts/jesd204.tcl
 
+set adc_fifo_name axi_ad9694_fifo
+
 # Lane 0 and 1 are in a different quad than lane 2 and 3. To get two quads
 # instantiate 6 physical lanes and leave lane 2 and 3 of the PHY unconnected.
 if {$NUM_OF_LANES == 4} {
@@ -49,6 +51,9 @@ ad_ip_instance util_adxcvr util_ad9694_xcvr [list \
 
 ad_connect sys_cpu_resetn util_ad9694_xcvr/up_rstn
 ad_connect sys_cpu_clk util_ad9694_xcvr/up_clk
+
+# instantiate the axi_adcfifo
+ad_adcfifo_create $adc_fifo_name $ADC_DATA_WIDTH $DMA_DATA_WIDTH
 
 # reference clocks & resets
 
@@ -133,3 +138,4 @@ ad_mem_hp2_interconnect sys_cpu_clk ad9694_dma/m_dest_axi
 
 ad_cpu_interrupt ps-11 mb-14 ad9694_jesd/irq
 ad_cpu_interrupt ps-13 mb-12 ad9694_dma/irq
+

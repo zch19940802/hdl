@@ -1,7 +1,7 @@
 # pl ddr3 (use only when dma is not capable of keeping up).
 # generic fifo interface - existence is oblivious to software.
 
-proc ad_adcfifo_create {adc_fifo_name adc_data_width adc_dma_data_width adc_fifo_address_width} {
+proc ad_adcfifo_create {adc_fifo_name adc_data_width adc_dma_data_width {adc_fifo_address_width {}}} {
 
   upvar ad_hdl_dir ad_hdl_dir
 
