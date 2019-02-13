@@ -12,38 +12,39 @@ if {$NUM_OF_LANES == 4} {
 # adc peripherals
 
 ad_ip_instance axi_adxcvr axi_ad9694_xcvr [list \
-  CONFIG.NUM_OF_LANES $NUM_OF_XCVR_LANES \
-  CONFIG.QPLL_ENABLE 1 \
-  CONFIG.TX_OR_RX_N 0 \
+  NUM_OF_LANES $NUM_OF_XCVR_LANES \
+  QPLL_ENABLE 1 \
+  TX_OR_RX_N 0 \
 ]
 
 adi_axi_jesd204_rx_create ad9694_jesd $NUM_OF_LANES
 
 ad_ip_instance ad_ip_jesd204_tpl_adc ad9694_tpl_core [list \
-  CONFIG.NUM_CHANNELS $NUM_OF_CHANNELS \
-  CONFIG.CHANNEL_WIDTH $ADC_RESOLUTION \
-  CONFIG.NUM_LANES $NUM_OF_LANES \
-  CONFIG.TWOS_COMPLEMENT 0 \
+  NUM_CHANNELS $NUM_OF_CHANNELS \
+  CONVERTER_RESOLUTION $ADC_RESOLUTION \
+  BITS_PER_SAMPLE $SAMPLE_WIDTH \
+  NUM_LANES $NUM_OF_LANES \
+  TWOS_COMPLEMENT 0 \
 ]
 
-ad_ip_instance util_cpack util_ad9694_cpack [list \
-  CONFIG.CHANNEL_DATA_WIDTH $CHANNEL_DATA_WIDTH \
-  CONFIG.NUM_OF_CHANNELS $NUM_OF_CHANNELS \
-  CONFIG.SAMPLE_WIDTH $SAMPLE_WIDTH \
+ad_ip_instance util_cpack2 util_ad9694_cpack [list \
+  NUM_OF_CHANNELS $NUM_OF_CHANNELS \
+  SAMPLES_PER_CHANNEL [expr $CHANNEL_DATA_WIDTH / $SAMPLE_WIDTH] \
+  SAMPLE_DATA_WIDTH $SAMPLE_WIDTH \
 ]
 
 ad_ip_instance axi_dmac ad9694_dma [list \
-  CONFIG.DMA_TYPE_SRC 1 \
-  CONFIG.DMA_TYPE_DEST 0 \
-  CONFIG.DMA_DATA_WIDTH_SRC $DMA_DATA_WIDTH \
-  CONFIG.DMA_DATA_WIDTH_DEST 64 \
+  DMA_TYPE_SRC 1 \
+  DMA_TYPE_DEST 0 \
+  DMA_DATA_WIDTH_SRC $DMA_DATA_WIDTH \
+  DMA_DATA_WIDTH_DEST 64 \
 ]
 
 # shared transceiver core
 
 ad_ip_instance util_adxcvr util_ad9694_xcvr [list \
-  CONFIG.RX_NUM_OF_LANES $NUM_OF_XCVR_LANES \
-  CONFIG.TX_NUM_OF_LANES 0 \
+  RX_NUM_OF_LANES $NUM_OF_XCVR_LANES \
+  TX_NUM_OF_LANES 0 \
 ]
 
 ad_connect sys_cpu_resetn util_ad9694_xcvr/up_rstn
@@ -72,21 +73,21 @@ ad_connect rx_device_clk_rstgen/peripheral_reset util_ad9694_cpack/reset
 
 for {set i 0} {$i < $NUM_OF_CHANNELS} {incr i} {
   ad_ip_instance xlslice ad9694_enable_slice_$i [list \
-    CONFIG.DIN_WIDTH $NUM_OF_CHANNELS \
-    CONFIG.DIN_FROM $i \
-    CONFIG.DIN_TO $i \
+    DIN_WIDTH $NUM_OF_CHANNELS \
+    DIN_FROM $i \
+    DIN_TO $i \
   ]
 
   ad_ip_instance xlslice ad9694_valid_slice_$i [list \
-    CONFIG.DIN_WIDTH $NUM_OF_CHANNELS \
-    CONFIG.DIN_FROM $i \
-    CONFIG.DIN_TO $i \
+    DIN_WIDTH $NUM_OF_CHANNELS \
+    DIN_FROM $i \
+    DIN_TO $i \
   ]
 
   ad_ip_instance xlslice ad9694_data_slice_$i [list \
-    CONFIG.DIN_WIDTH $ADC_DATA_WIDTH \
-    CONFIG.DIN_FROM [expr ($i + 1) * $CHANNEL_DATA_WIDTH - 1] \
-    CONFIG.DIN_TO [expr $i * $CHANNEL_DATA_WIDTH] \
+    DIN_WIDTH $ADC_DATA_WIDTH \
+    DIN_FROM [expr ($i + 1) * $CHANNEL_DATA_WIDTH - 1] \
+    DIN_TO [expr $i * $CHANNEL_DATA_WIDTH] \
   ]
 
   ad_connect ad9694_tpl_core/enable ad9694_enable_slice_$i/Din
