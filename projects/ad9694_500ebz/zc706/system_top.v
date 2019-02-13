@@ -101,28 +101,62 @@ module system_top (
   output                  rx_sync0_n,
   output                  rx_sync1_p,
   output                  rx_sync1_n,
+  input                   rx_sysref_p,
+  input                   rx_sysref_n,
   input       [ 3:0]      rx_data_p,
   input       [ 3:0]      rx_data_n,
 
   inout                   adc_fdb,
   inout                   adc_fda,
+  inout                   adc_pdwn,
 
-  // FMC ADC SPI
-  output            spi_adc_csn,
-  output            spi_adc_clk,
-  output            spi_adc_mosi,
-  input             spi_adc_miso,
+  // DAQ board's ADC SPI
 
-  // PMOD clockchips SPI
-  output            spi_clk0_csn,
-  output            spi_clk0_clk,
-  output            spi_clk0_mosi,
-  input             spi_clk0_miso,
-  output            spi_clk1_csn,
-  output            spi_clk1_clk,
-  output            spi_clk1_mosi,
+  output                  spi_adc_csn,
+  output                  spi_adc_clk,
+  output                  spi_adc_mosi,
+  input                   spi_adc_miso,
 
-  output            adc_capture_start
+  // DAQ board's clock chip
+
+  output                  spi_clkgen_csn,
+  output                  spi_clkgen_clk,
+  output                  spi_clkgen_mosi,
+  input                   spi_clkgen_miso,
+
+  // DAQ board's vco chip
+
+  inout                   spi_vco_csn,
+  inout                   spi_vco_clk,
+  inout                   spi_vco_mosi,
+
+  // AFE board's DAC
+
+  inout                   afe_dac_sda,
+  inout                   afe_dac_scl,
+  output                  afe_dac_clr_n,
+  output                  afe_dac_load,
+
+  // AFE board's ADC
+
+  inout                   afe_adc_sclk,
+  inout                   afe_adc_scn,
+  inout                   afe_adc_sdo,
+  output                  afe_adc_convst,
+
+  // Laser driver differential line
+
+  output                  laser_driver_p,
+  output                  laser_driver_n,
+
+  // GPIO's for the laser board
+
+  inout       [15:0]      laser_gpio,
+
+  // Vref selects for AFE board
+
+  output      [ 7:0]      afe_sel
+
 );
 
   // internal signals
@@ -130,33 +164,11 @@ module system_top (
   wire    [63:0]  gpio_i;
   wire    [63:0]  gpio_o;
   wire    [63:0]  gpio_t;
-  wire    [ 2:0]  spi0_csn;
-  wire            spi0_clk;
-  wire            spi0_mosi;
-  wire            spi0_miso;
-  wire    [ 2:0]  spi1_csn;
-  wire            spi1_clk;
-  wire            spi1_mosi;
-  wire            spi1_miso;
   wire            rx_ref_clk;
   wire            rx_sync;
+  wire            rx_sysref;
   wire            rx_device_clk;
-  wire            adc_capture_start_s;
-
-  // spi
-
-  assign spi_adc_clk = spi0_clk;
-  assign spi_adc_csn = spi0_csn[2];
-  assign spi_adc_mosi = spi0_mosi;
-
-  assign spi_clk0_clk = spi0_clk;
-  assign spi_clk0_csn = spi0_csn[0];
-  assign spi_clk0_mosi = spi0_mosi;
-  assign spi_clk1_clk = spi0_clk;
-  assign spi_clk1_csn = spi0_csn[1];
-  assign spi_clk1_mosi = spi0_mosi;
-
-  assign spi0_miso = |({spi_adc_miso,1'b0,spi_clk0_miso} & ~spi0_csn);
+  wire            laser_driver;
 
   // instantiations
 
@@ -177,47 +189,50 @@ module system_top (
     .O (rx_sync1_p),
     .OB (rx_sync1_n));
 
-  /* Use separate device clock */
   IBUFGDS i_rx_device_clk (
     .I (rx_device_clk_p),
     .IB (rx_device_clk_n),
-    .O (rx_device_clk)
-  );
+    .O (rx_device_clk));
 
-  /* Share clock between device and reference */
-  /*
-    BUFG i_rx_device_clk (
-      .I (rx_ref_clk),
-      .O (rx_device_clk)
-    );
-  */
+  IBUFGDS i_rx_sysref (
+    .I (rx_sysref_p),
+    .IB (rx_sysref_n),
+    .O (rx_sysref));
 
-  ODDR #(
-    .INIT(1'b0)
-  ) i_adc_capture_start_oddr (
-    .R (1'b0),
-    .S (1'b0),
-    .CE (1'b1),
-    .D1 (adc_capture_start_s),
-    .D2 (1'b0),
-    .C (rx_device_clk),
-    .Q (adc_capture_start)
-  );
+  // laser driver - TODO: connect laser driver logic here
 
-  ad_iobuf #(.DATA_WIDTH(2)) i_iobuf (
-    .dio_t ({gpio_t[33:32]}),
-    .dio_i ({gpio_o[33:32]}),
-    .dio_o ({gpio_i[33:32]}),
+  assign laser_driver = 1'b0;
+  OBUFDS i_obufds_laser_driver (
+    .I (laser_driver),
+    .O (laser_driver_p),
+    .OB (laser_driver_n));
+
+  // GPIO connections to the FMC connector
+
+  ad_iobuf #(.DATA_WIDTH(30)) i_fmc_iobuf (
+    .dio_t ({8'b0, gpio_t[52:38], 3'b0, gpio_t[34:32]}),
+    .dio_i ({gpio_o[61:32]}),
+    .dio_o ({gpio_i[61:32]}),
     .dio_p ({
+              afe_sel,          // 61:53 - output only
+              laser_gpio,       // 52:38
+              afe_adc_convst,   // 37    - output only
+              afe_dac_load,     // 36    - output only
+              afe_dac_clr_n,    // 35    - output only
+              adc_pdwn,         // 34
               adc_fdb,          // 33
               adc_fda           // 32
             }));
+
+  // GPIO connections for the carrier
 
   ad_iobuf #(.DATA_WIDTH(15)) i_iobuf_bd (
     .dio_t (gpio_t[14:0]),
     .dio_i (gpio_o[14:0]),
     .dio_o (gpio_i[14:0]),
     .dio_p (gpio_bd));
+
+  // block design instance
 
   system_wrapper i_system_wrapper (
     .ddr3_addr (ddr3_addr),
@@ -270,37 +285,48 @@ module system_top (
     .rx_data_0_p (rx_data_p[0]),
     .rx_data_1_n (rx_data_n[1]),
     .rx_data_1_p (rx_data_p[1]),
-    .rx_data_4_n (rx_data_n[2]),
-    .rx_data_4_p (rx_data_p[2]),
-    .rx_data_5_n (rx_data_n[3]),
-    .rx_data_5_p (rx_data_p[3]),
+    .rx_data_2_n (rx_data_n[2]),
+    .rx_data_2_p (rx_data_p[2]),
+    .rx_data_3_n (rx_data_n[3]),
+    .rx_data_3_p (rx_data_p[3]),
     .rx_ref_clk (rx_ref_clk),
     .rx_device_clk (rx_device_clk),
     .rx_sync_0 (rx_sync),
-    .rx_sysref_0 (1'b0),
+    .rx_sysref_0 (rx_sysref),
     .spdif (spdif),
-    .spi0_clk_i (spi0_clk),
-    .spi0_clk_o (spi0_clk),
-    .spi0_csn_0_o (spi0_csn[0]),
-    .spi0_csn_1_o (spi0_csn[1]),
-    .spi0_csn_2_o (spi0_csn[2]),
+    .iic_dac_scl_io (afe_dac_sda),
+    .iic_dac_sda_io (afe_dac_scl),
+    .spi0_clk_i (spi_adc_clk),
+    .spi0_clk_o (spi_adc_clk),
+    .spi0_csn_0_o (spi_adc_csn),
     .spi0_csn_i (1'b1),
-    .spi0_sdi_i (spi0_miso),
-    .spi0_sdo_i (spi0_mosi),
-    .spi0_sdo_o (spi0_mosi),
-    .spi1_clk_i (spi1_clk),
-    .spi1_clk_o (spi1_clk),
-    .spi1_csn_0_o (spi1_csn[0]),
-    .spi1_csn_1_o (spi1_csn[1]),
-    .spi1_csn_2_o (spi1_csn[2]),
+    .spi0_sdi_i (spi_adc_miso),
+    .spi0_sdo_i (spi_adc_mosi),
+    .spi0_sdo_o (spi_adc_mosi),
+    .spi1_clk_i (spi_clkgen_clk),
+    .spi1_clk_o (spi_clkgen_clk),
+    .spi1_csn_0_o (spi_clkgen_csn),
     .spi1_csn_i (1'b1),
-    .spi1_sdi_i (1'b1),
-    .spi1_sdo_i (spi1_mosi),
-    .spi1_sdo_o (spi1_mosi),
+    .spi1_sdi_i (spi_clkgen_miso),
+    .spi1_sdo_i (spi_clkgen_mosi),
+    .spi1_sdo_o (spi_clkgen_mosi),
+    .spi_vco_csn_i (1'b1),
+    .spi_vco_csn_o (spi_vco_csn),
+    .spi_vco_clk_i (spi_vco_clk),
+    .spi_vco_clk_o (spi_vco_clk),
+    .spi_vco_sdo_i (spi_vco_mosi),
+    .spi_vco_sdo_o (spi_vco_mosi),
+    .spi_vco_sdi_i (1'b0),
+    .spi_afe_adc_csn_i (1'b1),
+    .spi_afe_adc_csn_o (afe_adc_scn),
+    .spi_afe_adc_clk_i (afe_adc_sclk),
+    .spi_afe_adc_clk_o (afe_adc_sclk),
+    .spi_afe_adc_sdo_i (afe_adc_sdo),
+    .spi_afe_adc_sdo_o (afe_adc_sdo),
+    .spi_afe_adc_sdi_i (1'b0),
     .sys_clk_clk_n (sys_clk_n),
     .sys_clk_clk_p (sys_clk_p),
-    .sys_rst (sys_rst),
-    .adc_capture_start (adc_capture_start_s)
+    .sys_rst (sys_rst)
   );
 
 endmodule

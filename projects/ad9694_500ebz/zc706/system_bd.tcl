@@ -1,10 +1,11 @@
 
 # Configurable parameters
 
-set NUM_OF_CHANNELS 4
-set NUM_OF_LANES 4
 set SAMPLE_RATE_MHZ 1000.0
-set ADC_RESOLUTION 8
+set NUM_OF_CHANNELS 4           ; # M
+set SAMPLES_PER_FRAME 1         ; # S
+set NUM_OF_LANES 4              ; # L
+set ADC_RESOLUTION 8            ; # N & NP
 
 # Auto-computed parameters
 
@@ -17,6 +18,3 @@ source $ad_hdl_dir/projects/common/zc706/zc706_system_bd.tcl
 source $ad_hdl_dir/projects/common/zc706/zc706_plddr3_adcfifo_bd.tcl
 source ../common/ad9694_500ebz_bd.tcl
 
-create_bd_port -dir O adc_capture_start
-
-ad_connect axi_ad9694_fifo/adc_capture_start adc_capture_start
