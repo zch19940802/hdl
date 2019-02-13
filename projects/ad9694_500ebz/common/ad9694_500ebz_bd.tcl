@@ -67,8 +67,8 @@ ad_connect ad9694_jesd/rx_sof ad9694_tpl_core/link_sof
 ad_connect ad9694_jesd/rx_data_tvalid ad9694_tpl_core/link_valid
 ad_connect ad9694_jesd/rx_data_tdata ad9694_tpl_core/link_data
 
-ad_connect rx_device_clk util_ad9694_cpack/adc_clk
-ad_connect rx_device_clk_rstgen/peripheral_reset util_ad9694_cpack/adc_rst
+ad_connect rx_device_clk util_ad9694_cpack/clk
+ad_connect rx_device_clk_rstgen/peripheral_reset util_ad9694_cpack/reset
 
 for {set i 0} {$i < $NUM_OF_CHANNELS} {incr i} {
   ad_ip_instance xlslice ad9694_enable_slice_$i [list \
@@ -93,15 +93,15 @@ for {set i 0} {$i < $NUM_OF_CHANNELS} {incr i} {
   ad_connect ad9694_tpl_core/adc_valid ad9694_valid_slice_$i/Din
   ad_connect ad9694_tpl_core/adc_data ad9694_data_slice_$i/Din
 
-  ad_connect ad9694_enable_slice_$i/Dout util_ad9694_cpack/adc_enable_$i
-  ad_connect ad9694_valid_slice_$i/Dout util_ad9694_cpack/adc_valid_$i
-  ad_connect ad9694_data_slice_$i/Dout util_ad9694_cpack/adc_data_$i
+  ad_connect ad9694_enable_slice_$i/Dout util_ad9694_cpack/enable_$i
+  ad_connect ad9694_data_slice_$i/Dout util_ad9694_cpack/fifo_wr_data_$i
 }
+ad_connect ad9694_valid_slice_0/Dout util_ad9694_cpack/fifo_wr_en
 
 ad_connect rx_device_clk axi_ad9694_fifo/adc_clk
 ad_connect rx_device_clk_rstgen/peripheral_reset axi_ad9694_fifo/adc_rst
-ad_connect util_ad9694_cpack/adc_valid axi_ad9694_fifo/adc_wr
-ad_connect util_ad9694_cpack/adc_data axi_ad9694_fifo/adc_wdata
+ad_connect util_ad9694_cpack/packed_fifo_wr_en axi_ad9694_fifo/adc_wr
+ad_connect util_ad9694_cpack/packed_fifo_wr_data axi_ad9694_fifo/adc_wdata
 ad_connect sys_cpu_clk axi_ad9694_fifo/dma_clk
 ad_connect sys_cpu_clk ad9694_dma/s_axis_aclk
 ad_connect sys_cpu_resetn ad9694_dma/m_dest_axi_aresetn
