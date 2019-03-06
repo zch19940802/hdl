@@ -141,11 +141,14 @@ ad_connect spi_afe_adc_sdo_o axi_spi_afe_adc/io0_o
 ad_connect spi_afe_adc_sdi_i axi_spi_afe_adc/io1_i
 
 # laser driver - runs in asynchronous mode, using a 250MHz reference clock
+# NOTE: After power up the driver will not generate any pulses, the software
+# must configure the AXI Memory Mapped registers and load the configuration.
+# This is why the parameter PULSE_PERIOD is 0.
 
 ad_ip_instance axi_pulse_gen axi_laser_driver [list \
  ASYNC_CLK_EN  1 \
- PULSE_WIDTH  7 \
- PULSE_PERIOD 10 \
+ PULSE_WIDTH  1 \
+ PULSE_PERIOD 0 \
 ]
 ad_ip_parameter sys_ps7 CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ 250
 ad_connect axi_laser_driver/ext_clk sys_ps7/FCLK_CLK2
