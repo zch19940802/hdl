@@ -199,9 +199,8 @@ module system_top (
     .IB (rx_sysref_n),
     .O (rx_sysref));
 
-  // laser driver - TODO: connect laser driver logic here
+  // laser driver
 
-  assign laser_driver = 1'b0;
   OBUFDS i_obufds_laser_driver (
     .I (laser_driver),
     .O (laser_driver_p),
@@ -294,6 +293,7 @@ module system_top (
     .rx_sync_0 (rx_sync),
     .rx_sysref_0 (rx_sysref),
     .spdif (spdif),
+    .laser_driver (laser_driver),
     .iic_dac_scl_io (afe_dac_sda),
     .iic_dac_sda_io (afe_dac_scl),
     .spi0_clk_i (spi_adc_clk),

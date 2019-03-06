@@ -18,6 +18,7 @@ create_bd_port -dir O spi_afe_adc_clk_o
 create_bd_port -dir I spi_afe_adc_sdo_i
 create_bd_port -dir O spi_afe_adc_sdo_o
 create_bd_port -dir I spi_afe_adc_sdi_i
+create_bd_port -dir O laser_driver
 
 # adc peripherals - controlled by PS7/SPI0
 
@@ -139,6 +140,17 @@ ad_connect spi_afe_adc_sdo_i axi_spi_afe_adc/io0_i
 ad_connect spi_afe_adc_sdo_o axi_spi_afe_adc/io0_o
 ad_connect spi_afe_adc_sdi_i axi_spi_afe_adc/io1_i
 
+# laser driver - runs in asynchronous mode, using a 250MHz reference clock
+
+ad_ip_instance axi_pulse_gen axi_laser_driver [list \
+ ASYNC_CLK_EN  1 \
+ PULSE_WIDTH  7 \
+ PULSE_PERIOD 10 \
+]
+ad_ip_parameter sys_ps7 CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ 250
+ad_connect axi_laser_driver/ext_clk sys_ps7/FCLK_CLK2
+ad_connect laser_driver axi_laser_driver/pulse
+
 # interconnect (cpu)
 
 ad_cpu_interconnect 0x44A50000 axi_ad9694_xcvr
@@ -147,6 +159,7 @@ ad_cpu_interconnect 0x44AA0000 ad9694_jesd
 ad_cpu_interconnect 0x7c400000 ad9694_dma
 ad_cpu_interconnect 0x7c500000 axi_spi_vco
 ad_cpu_interconnect 0x7c600000 axi_spi_afe_adc
+ad_cpu_interconnect 0x7c700000 axi_laser_driver
 
 # gt uses hp3, and 100MHz clock for both DRP and AXI4
 
