@@ -46,10 +46,11 @@ ad_ip_instance axi_dmac ad9694_dma [list \
 
 # 3-wire SPI for clock synthesizer & VCO - 12.5MHz SCLK rate
 
-ad_ip_instance axi_quad_spi axi_spi_vco
-ad_ip_parameter axi_spi_vco CONFIG.C_USE_STARTUP 0
-ad_ip_parameter axi_spi_vco CONFIG.C_NUM_SS_BITS 1
-ad_ip_parameter axi_spi_vco CONFIG.C_SCK_RATIO 8
+ad_ip_instance axi_quad_spi axi_spi_vco [list \
+  C_USE_STARTUP 0 \
+  C_NUM_SS_BITS 1 \
+  C_SCK_RATIO 8 \
+]
 
 # I2C for AFE board's DAC
 
@@ -58,10 +59,11 @@ ad_ip_parameter sys_ps7 CONFIG.PCW_I2C1_PERIPHERAL_ENABLE 1
 
 # 3-wire SPI for AFE board's ADC - 12.5MHz SCLK rate
 
-ad_ip_instance axi_quad_spi axi_spi_afe_adc
-ad_ip_parameter axi_spi_afe_adc CONFIG.C_USE_STARTUP 0
-ad_ip_parameter axi_spi_afe_adc CONFIG.C_NUM_SS_BITS 1
-ad_ip_parameter axi_spi_afe_adc CONFIG.C_SCK_RATIO 8
+ad_ip_instance axi_quad_spi axi_spi_afe_adc [list \
+  C_USE_STARTUP 0 \
+  C_NUM_SS_BITS 1 \
+  C_SCK_RATIO 8 \
+]
 
 # shared transceiver core
 
