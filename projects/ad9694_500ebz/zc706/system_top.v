@@ -126,9 +126,9 @@ module system_top (
 
   // DAQ board's vco chip
 
-  inout                   spi_vco_csn,
-  inout                   spi_vco_clk,
-  inout                   spi_vco_mosi,
+  output                  spi_vco_csn,
+  output                  spi_vco_clk,
+  output                  spi_vco_mosi,
 
   // AFE board's DAC
 
@@ -139,9 +139,9 @@ module system_top (
 
   // AFE board's ADC
 
-  inout                   afe_adc_sclk,
-  inout                   afe_adc_scn,
-  inout                   afe_adc_sdo,
+  output                  afe_adc_sclk,
+  output                  afe_adc_scn,
+  output                  afe_adc_sdo,
   output                  afe_adc_convst,
 
   // Laser driver differential line
@@ -312,16 +312,16 @@ module system_top (
     .spi1_sdo_o (spi_clkgen_mosi),
     .spi_vco_csn_i (1'b1),
     .spi_vco_csn_o (spi_vco_csn),
-    .spi_vco_clk_i (spi_vco_clk),
+    .spi_vco_clk_i (1'b0),
     .spi_vco_clk_o (spi_vco_clk),
-    .spi_vco_sdo_i (spi_vco_mosi),
+    .spi_vco_sdo_i (1'b0),
     .spi_vco_sdo_o (spi_vco_mosi),
     .spi_vco_sdi_i (1'b0),
     .spi_afe_adc_csn_i (1'b1),
     .spi_afe_adc_csn_o (afe_adc_scn),
-    .spi_afe_adc_clk_i (afe_adc_sclk),
+    .spi_afe_adc_clk_i (1'b0),
     .spi_afe_adc_clk_o (afe_adc_sclk),
-    .spi_afe_adc_sdo_i (afe_adc_sdo),
+    .spi_afe_adc_sdo_i (1'b0),
     .spi_afe_adc_sdo_o (afe_adc_sdo),
     .spi_afe_adc_sdi_i (1'b0),
     .sys_clk_clk_n (sys_clk_n),
