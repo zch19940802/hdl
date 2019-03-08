@@ -47,8 +47,8 @@ set_property  -dict {PACKAGE_PIN  T25   IOSTANDARD LVCMOS25} [get_ports spi_clkg
 
 # Laser driver and GPIOs
 
-set_property  -dict {PACKAGE_PIN  W25   IOSTANDARD LVDS_25}  [get_ports laser_driver_p]         ; ## C22  FMC_HPC_LA18_CC_P
-set_property  -dict {PACKAGE_PIN  W26   IOSTANDARD LVDS_25}  [get_ports laser_driver_n]         ; ## C23  FMC_HPC_LA18_CC_N
+set_property  -dict {PACKAGE_PIN  W25   IOSTANDARD LVDS_25 DIFF_TERM TRUE}  [get_ports laser_driver_p]  ; ## C22  FMC_HPC_LA18_CC_P
+set_property  -dict {PACKAGE_PIN  W26   IOSTANDARD LVDS_25 DIFF_TERM TRUE}  [get_ports laser_driver_n]  ; ## C23  FMC_HPC_LA18_CC_N
 set_property  -dict {PACKAGE_PIN  V28   IOSTANDARD LVCMOS25} [get_ports laser_gpio[0]]          ; ## C26  FMC_HPC_LA27_P
 set_property  -dict {PACKAGE_PIN  V29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[1]]          ; ## C27  FMC_HPC_LA27_N
 set_property  -dict {PACKAGE_PIN  V23   IOSTANDARD LVCMOS25} [get_ports laser_gpio[2]]          ; ## D20  FMC_HPC_LA17_CC_P
