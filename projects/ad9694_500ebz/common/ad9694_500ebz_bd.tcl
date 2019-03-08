@@ -77,8 +77,7 @@ ad_connect sys_cpu_clk util_ad9694_xcvr/up_clk
 
 # instantiate the axi_adcfifo
 
-set adc_fifo_name axi_ad9694_fifo
-ad_adcfifo_create $adc_fifo_name $ADC_DATA_WIDTH $DMA_DATA_WIDTH
+ad_adcfifo_create axi_ad9694_fifo $ADC_DATA_WIDTH $DMA_DATA_WIDTH 1
 
 # reference clocks & resets
 
@@ -155,6 +154,7 @@ ad_ip_instance axi_pulse_gen axi_laser_driver [list \
 ad_ip_parameter sys_ps7 CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ 250
 ad_connect axi_laser_driver/ext_clk sys_ps7/FCLK_CLK2
 ad_connect laser_driver axi_laser_driver/pulse
+ad_connect axi_ad9694_fifo/adc_capture_start_in axi_laser_driver/pulse
 
 # interconnect (cpu)
 
