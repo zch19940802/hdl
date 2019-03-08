@@ -238,7 +238,7 @@ module axi_adcfifo_wr #(
 
   assign axi_rel_toggle_s = axi_rel_toggle_m[2] ^ axi_rel_toggle_m[1];
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_rel_toggle_m <= 'd0;
       axi_rel_waddr <= 'd0;
@@ -288,7 +288,7 @@ module axi_adcfifo_wr #(
 
   // transfer request is required to keep things in sync
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_xfer_req_m <= 'd0;
       axi_xfer_init <= 'd0;
@@ -305,7 +305,7 @@ module axi_adcfifo_wr #(
   assign axi_req_s = (axi_raddr[1:0] == 2'h0) ? axi_rd_s : 1'b0;
   assign axi_rlast_s = (axi_raddr[1:0] == 2'h3) ? axi_rd_s : 1'b0;
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_raddr <= 'd0;
       axi_rd <= 'd0;
@@ -327,7 +327,7 @@ module axi_adcfifo_wr #(
 
   // send read request for every burst about to be completed
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_rd_req <= 'd0;
       axi_rd_addr <= 'd0;
@@ -353,7 +353,7 @@ module axi_adcfifo_wr #(
   assign axi_awlen = AXI_LENGTH - 1;
   assign axi_awsize = AXI_SIZE;
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_awvalid <= 'd0;
       axi_awaddr <= 'd0;
@@ -384,7 +384,7 @@ module axi_adcfifo_wr #(
 
   assign axi_bready = 1'b1;
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_werror <= 'd0;
     end else begin
@@ -394,7 +394,7 @@ module axi_adcfifo_wr #(
 
   // fifo needs a reset
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_reset <= 1'b1;
     end else begin

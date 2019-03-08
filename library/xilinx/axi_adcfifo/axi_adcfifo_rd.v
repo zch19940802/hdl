@@ -105,11 +105,11 @@ module axi_adcfifo_rd #(
 
   wire                            axi_ready_s;
 
-  // read is way too slow- buffer mode 
+  // read is way too slow- buffer mode
 
   assign axi_ready_s = (~axi_arvalid | axi_arready) & axi_dready;
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_rd_addr_h <= 'd0;
       axi_rd <= 'd0;
@@ -150,7 +150,7 @@ module axi_adcfifo_rd #(
   assign axi_arlen  = AXI_LENGTH - 1;
   assign axi_arsize  = AXI_SIZE;
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_arvalid <= 'd0;
       axi_araddr <= 'd0;
@@ -174,7 +174,7 @@ module axi_adcfifo_rd #(
 
   // read data channel
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_drst <= 'd1;
       axi_dvalid <= 'd0;
@@ -188,7 +188,7 @@ module axi_adcfifo_rd #(
     end
   end
 
-  always @(posedge axi_clk or negedge axi_resetn) begin
+  always @(posedge axi_clk) begin
     if (axi_resetn == 1'b0) begin
       axi_rerror <= 'd0;
     end else begin
