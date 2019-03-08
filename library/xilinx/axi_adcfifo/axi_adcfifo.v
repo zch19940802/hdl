@@ -48,82 +48,82 @@ module axi_adcfifo #(
 
   // fifo interface
 
-  input                   adc_rst,
-  input                   adc_clk,
-  input                   adc_wr,
-  input       [ADC_DATA_WIDTH-1:0]  adc_wdata,
-  output                  adc_wovf,
+  input                                 adc_rst,
+  input                                 adc_clk,
+  input                                 adc_wr,
+  input       [ADC_DATA_WIDTH-1:0]      adc_wdata,
+  output                                adc_wovf,
 
-  output                  adc_capture_start,
+  output                                adc_capture_start,
 
   // dma interface
 
-  input                   dma_clk,
-  output                  dma_wr,
-  output      [DMA_DATA_WIDTH-1:0]  dma_wdata,
-  input                   dma_wready,
-  input                   dma_xfer_req,
-  output      [ 3:0]      dma_xfer_status,
+  input                                 dma_clk,
+  output                                dma_wr,
+  output      [DMA_DATA_WIDTH-1:0]      dma_wdata,
+  input                                 dma_wready,
+  input                                 dma_xfer_req,
+  output      [ 3:0]                    dma_xfer_status,
 
   // axi interface
 
-  input                   axi_clk,
-  input                   axi_resetn,
-  output                  axi_awvalid,
-  output      [ 3:0]      axi_awid,
-  output      [ 1:0]      axi_awburst,
-  output                  axi_awlock,
-  output      [ 3:0]      axi_awcache,
-  output      [ 2:0]      axi_awprot,
-  output      [ 3:0]      axi_awqos,
-  output      [ 3:0]      axi_awuser,
-  output      [ 7:0]      axi_awlen,
-  output      [ 2:0]      axi_awsize,
-  output      [ 31:0]     axi_awaddr,
-  input                   axi_awready,
-  output                  axi_wvalid,
-  output      [AXI_DATA_WIDTH-1:0]  axi_wdata,
+  input                                 axi_clk,
+  input                                 axi_resetn,
+  output                                axi_awvalid,
+  output      [ 3:0]                    axi_awid,
+  output      [ 1:0]                    axi_awburst,
+  output                                axi_awlock,
+  output      [ 3:0]                    axi_awcache,
+  output      [ 2:0]                    axi_awprot,
+  output      [ 3:0]                    axi_awqos,
+  output      [ 3:0]                    axi_awuser,
+  output      [ 7:0]                    axi_awlen,
+  output      [ 2:0]                    axi_awsize,
+  output      [ 31:0]                   axi_awaddr,
+  input                                 axi_awready,
+  output                                axi_wvalid,
+  output      [AXI_DATA_WIDTH-1:0]      axi_wdata,
   output      [(AXI_DATA_WIDTH/8)-1:0]  axi_wstrb,
-  output                  axi_wlast,
-  output      [ 3:0]      axi_wuser,
-  input                   axi_wready,
-  input                   axi_bvalid,
-  input       [ 3:0]      axi_bid,
-  input       [ 1:0]      axi_bresp,
-  input       [ 3:0]      axi_buser,
-  output                  axi_bready,
-  output                  axi_arvalid,
-  output      [ 3:0]      axi_arid,
-  output      [ 1:0]      axi_arburst,
-  output                  axi_arlock,
-  output      [ 3:0]      axi_arcache,
-  output      [ 2:0]      axi_arprot,
-  output      [ 3:0]      axi_arqos,
-  output      [ 3:0]      axi_aruser,
-  output      [ 7:0]      axi_arlen,
-  output      [ 2:0]      axi_arsize,
-  output      [ 31:0]     axi_araddr,
-  input                   axi_arready,
-  input                   axi_rvalid,
-  input       [ 3:0]      axi_rid,
-  input       [ 3:0]      axi_ruser,
-  input       [ 1:0]      axi_rresp,
-  input                   axi_rlast,
-  input       [AXI_DATA_WIDTH-1:0]  axi_rdata,
-  output                  axi_rready);
+  output                                axi_wlast,
+  output      [ 3:0]                    axi_wuser,
+  input                                 axi_wready,
+  input                                 axi_bvalid,
+  input       [ 3:0]                    axi_bid,
+  input       [ 1:0]                    axi_bresp,
+  input       [ 3:0]                    axi_buser,
+  output                                axi_bready,
+  output                                axi_arvalid,
+  output      [ 3:0]                    axi_arid,
+  output      [ 1:0]                    axi_arburst,
+  output                                axi_arlock,
+  output      [ 3:0]                    axi_arcache,
+  output      [ 2:0]                    axi_arprot,
+  output      [ 3:0]                    axi_arqos,
+  output      [ 3:0]                    axi_aruser,
+  output      [ 7:0]                    axi_arlen,
+  output      [ 2:0]                    axi_arsize,
+  output      [ 31:0]                   axi_araddr,
+  input                                 axi_arready,
+  input                                 axi_rvalid,
+  input       [ 3:0]                    axi_rid,
+  input       [ 3:0]                    axi_ruser,
+  input       [ 1:0]                    axi_rresp,
+  input                                 axi_rlast,
+  input       [AXI_DATA_WIDTH-1:0]      axi_rdata,
+  output                                axi_rready);
 
 
   // internal signals
 
-  wire                            adc_dwr_s;
-  wire    [AXI_DATA_WIDTH-1:0]    adc_ddata_s;
-  wire                            axi_rd_req_s;
-  wire    [ 31:0]                 axi_rd_addr_s;
-  wire    [  3:0]                 axi_xfer_status_s;
-  wire                            axi_drst_s;
-  wire                            axi_dvalid_s;
-  wire    [AXI_DATA_WIDTH-1:0]    axi_ddata_s;
-  wire                            axi_dready_s;
+  wire                                  adc_dwr_s;
+  wire    [AXI_DATA_WIDTH-1:0]          adc_ddata_s;
+  wire                                  axi_rd_req_s;
+  wire    [ 31:0]                       axi_rd_addr_s;
+  wire    [  3:0]                       axi_xfer_status_s;
+  wire                                  axi_drst_s;
+  wire                                  axi_dvalid_s;
+  wire    [AXI_DATA_WIDTH-1:0]          axi_ddata_s;
+  wire                                  axi_dready_s;
 
   // instantiations
 
