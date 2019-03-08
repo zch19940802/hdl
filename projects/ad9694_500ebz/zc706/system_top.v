@@ -209,12 +209,12 @@ module system_top (
   // GPIO connections to the FMC connector
 
   ad_iobuf #(.DATA_WIDTH(30)) i_fmc_iobuf (
-    .dio_t ({8'b0, gpio_t[52:38], 3'b0, gpio_t[34:32]}),
+    .dio_t ({8'b0, gpio_t[53:38], 3'b0, gpio_t[34:32]}),
     .dio_i ({gpio_o[61:32]}),
     .dio_o ({gpio_i[61:32]}),
     .dio_p ({
-              afe_sel,          // 61:53 - output only
-              laser_gpio,       // 52:38
+              afe_sel,          // 61:54 - output only
+              laser_gpio,       // 53:38
               afe_adc_convst,   // 37    - output only
               afe_dac_load,     // 36    - output only
               afe_dac_clr_n,    // 35    - output only
