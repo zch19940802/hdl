@@ -44,7 +44,8 @@ module axi_adcfifo #(
   parameter   AXI_SIZE = 2,
   parameter   AXI_LENGTH = 16,
   parameter   AXI_ADDRESS = 32'h00000000,
-  parameter   AXI_ADDRESS_LIMIT = 32'hffffffff) (
+  parameter   AXI_ADDRESS_LIMIT = 32'hffffffff,
+  parameter   SYNCED_CAPTURE_ENABLE = 0) (
 
   // fifo interface
 
@@ -54,7 +55,8 @@ module axi_adcfifo #(
   input       [ADC_DATA_WIDTH-1:0]      adc_wdata,
   output                                adc_wovf,
 
-  output                                adc_capture_start,
+  output                                adc_capture_start_out,
+  input                                 adc_capture_start_in,
 
   // dma interface
 
@@ -147,7 +149,8 @@ module axi_adcfifo #(
     .AXI_SIZE (AXI_SIZE),
     .AXI_LENGTH (AXI_LENGTH),
     .AXI_ADDRESS (AXI_ADDRESS),
-    .AXI_ADDRESS_LIMIT (AXI_ADDRESS_LIMIT))
+    .AXI_ADDRESS_LIMIT (AXI_ADDRESS_LIMIT),
+    .SYNCED_CAPTURE_ENABLE (SYNCED_CAPTURE_ENABLE))
   i_wr (
     .dma_xfer_req (dma_xfer_req),
     .axi_rd_req (axi_rd_req_s),
@@ -156,7 +159,8 @@ module axi_adcfifo #(
     .adc_clk (adc_clk),
     .adc_wr (adc_dwr_s),
     .adc_wdata (adc_ddata_s),
-    .adc_capture_start (adc_capture_start),
+    .adc_capture_start_out (adc_capture_start_out),
+    .adc_capture_start_in (adc_capture_start_in),
     .axi_clk (axi_clk),
     .axi_resetn (axi_resetn),
     .axi_awvalid (axi_awvalid),

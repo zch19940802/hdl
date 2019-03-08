@@ -1,7 +1,7 @@
 # pl ddr3 (use only when dma is not capable of keeping up).
 # generic fifo interface - existence is oblivious to software.
 
-proc ad_adcfifo_create {adc_fifo_name adc_data_width adc_dma_data_width {adc_fifo_address_width {}}} {
+proc ad_adcfifo_create {adc_fifo_name adc_data_width adc_dma_data_width {adc_fifo_address_width {}} {synced_capture_en 0}} {
 
   upvar ad_hdl_dir ad_hdl_dir
 
@@ -31,6 +31,7 @@ proc ad_adcfifo_create {adc_fifo_name adc_data_width adc_dma_data_width {adc_fif
   ad_ip_parameter $adc_fifo_name CONFIG.AXI_LENGTH 4
   ad_ip_parameter $adc_fifo_name CONFIG.AXI_ADDRESS 0x80000000
   ad_ip_parameter $adc_fifo_name CONFIG.AXI_ADDRESS_LIMIT 0xa0000000
+  ad_ip_parameter $adc_fifo_name CONFIG.SYNCED_CAPTURE_ENABLE $synced_capture_en
 
   ad_connect  axi_ddr_cntrl/S_AXI $adc_fifo_name/axi
   ad_connect  axi_ddr_cntrl/ui_clk $adc_fifo_name/axi_clk

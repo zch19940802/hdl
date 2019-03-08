@@ -41,7 +41,8 @@ module axi_adcfifo_wr #(
   parameter   AXI_SIZE = 2,
   parameter   AXI_LENGTH = 16,
   parameter   AXI_ADDRESS = 32'h00000000,
-  parameter   AXI_ADDRESS_LIMIT = 32'h00000000) (
+  parameter   AXI_ADDRESS_LIMIT = 32'h00000000,
+  parameter   SYNCED_CAPTURE_ENABLE = 0) (
 
   // request and synchronization
 
@@ -58,7 +59,8 @@ module axi_adcfifo_wr #(
   input                             adc_clk,
   input                             adc_wr,
   input       [AXI_DATA_WIDTH-1:0]  adc_wdata,
-  output                            adc_capture_start,
+  output                            adc_capture_start_out,
+  input                             adc_capture_start_in,
 
   // axi interface
 
@@ -78,7 +80,7 @@ module axi_adcfifo_wr #(
   input                             axi_awready,
   output                            axi_wvalid,
   output      [AXI_DATA_WIDTH-1:0]  axi_wdata,
-  output      [AXI_BYTE_WIDTH-1:0]  axi_wstrb,
+  output      [AXI_DATA_WIDTH/8-1:0]  axi_wstrb,
   output                            axi_wlast,
   output      [ 3:0]                axi_wuser,
   input                             axi_wready,
@@ -189,14 +191,37 @@ module axi_adcfifo_wr #(
     end
   end
 
-  assign adc_capture_start = adc_wr & adc_capture_arm;
+  assign adc_capture_start_out = adc_wr & adc_capture_arm;
+
+  // optional capture synchronization
+  generate
+  if (SYNCED_CAPTURE_ENABLE) begin : synced_capture
+    always @(posedge adc_clk) begin
+      if (adc_rst == 1'b1) begin
+        adc_xfer_req_m <= 'd0;
+        adc_xfer_init <= 'd0;
+      end else begin
+        adc_xfer_req_m <= {adc_xfer_req_m[1:0], adc_capture_start_in};
+        adc_xfer_init <= adc_xfer_req_m[1] & ~adc_xfer_req_m[2];
+      end
+    end
+  end else begin : async_capture
+    always @(posedge adc_clk) begin
+      if (adc_rst == 1'b1) begin
+        adc_xfer_req_m <= 'd0;
+        adc_xfer_init <= 'd0;
+      end else begin
+        adc_xfer_req_m <= {adc_xfer_req_m[1:0], dma_xfer_req};
+        adc_xfer_init <= adc_xfer_req_m[1] & ~adc_xfer_req_m[2];
+      end
+    end
+  end
+  endgenerate
 
   always @(posedge adc_clk) begin
     if (adc_rst == 1'b1) begin
       adc_waddr <= 'd0;
       adc_waddr_g <= 'd0;
-      adc_xfer_req_m <= 'd0;
-      adc_xfer_init <= 'd0;
       adc_xfer_limit <= 'd0;
       adc_xfer_enable <= 'd0;
       adc_xfer_addr <= 'd0;
@@ -208,8 +233,6 @@ module axi_adcfifo_wr #(
         adc_waddr <= adc_waddr + 1'b1;
       end
       adc_waddr_g <= b2g(adc_waddr);
-      adc_xfer_req_m <= {adc_xfer_req_m[1:0], dma_xfer_req};
-      adc_xfer_init <= adc_xfer_req_m[1] & ~adc_xfer_req_m[2];
       if (adc_xfer_init == 1'b1) begin
         adc_xfer_limit <= 1'd1;
       end else if ((adc_xfer_addr >= AXI_ADDRESS_LIMIT) || (adc_xfer_enable == 1'b0)) begin
