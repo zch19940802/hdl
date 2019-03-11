@@ -3,9 +3,9 @@
 ## Auto-generated, do not modify!
 ####################################################################################
 
-PROJECT_NAME := ad9694_500ebz_zc706
+PROJECT_NAME := ad_fmclidar1_ebz_zc706
 
-M_DEPS += ../common/ad9694_500ebz_bd.tcl
+M_DEPS += ../common/ad_fmclidar1_ebz_bd.tcl
 M_DEPS += ../../common/zc706/zc706_system_constr.xdc
 M_DEPS += ../../common/zc706/zc706_system_bd.tcl
 M_DEPS += ../../common/zc706/zc706_plddr3_constr.xdc
@@ -16,6 +16,7 @@ M_DEPS += ../../../library/jesd204/scripts/jesd204.tcl
 LIB_DEPS += axi_clkgen
 LIB_DEPS += axi_dmac
 LIB_DEPS += axi_hdmi_tx
+LIB_DEPS += axi_pulse_gen
 LIB_DEPS += axi_spdif_tx
 LIB_DEPS += jesd204/ad_ip_jesd204_tpl_adc
 LIB_DEPS += jesd204/axi_jesd204_rx

@@ -16,5 +16,5 @@ set SAMPLE_WIDTH [expr $ADC_RESOLUTION > 8 ? 16 : 8]
 
 source $ad_hdl_dir/projects/common/zc706/zc706_system_bd.tcl
 source $ad_hdl_dir/projects/common/zc706/zc706_plddr3_adcfifo_bd.tcl
-source ../common/ad9694_500ebz_bd.tcl
+source ../common/ad_fmclidar1_ebz_bd.tcl
 
