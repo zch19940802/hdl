@@ -91,7 +91,7 @@ ad_xcvrpll  axi_ad9694_xcvr/up_pll_rst util_ad9694_xcvr/up_cpll_rst_*
 
 # connections (adc)
 
-ad_xcvrcon util_ad9694_xcvr axi_ad9694_xcvr ad9694_jesd {2 3 0 1} rx_device_clk
+ad_xcvrcon util_ad9694_xcvr axi_ad9694_xcvr ad9694_jesd {3 2 0 1} rx_device_clk
 ad_connect rx_device_clk ad9694_tpl_core/link_clk
 ad_connect ad9694_jesd/rx_sof ad9694_tpl_core/link_sof
 ad_connect ad9694_jesd/rx_data_tvalid ad9694_tpl_core/link_valid
