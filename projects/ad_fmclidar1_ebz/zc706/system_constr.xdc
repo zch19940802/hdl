@@ -49,22 +49,24 @@ set_property  -dict {PACKAGE_PIN  T25   IOSTANDARD LVCMOS25} [get_ports spi_clkg
 
 set_property  -dict {PACKAGE_PIN  W25   IOSTANDARD LVDS_25 DIFF_TERM TRUE}  [get_ports laser_driver_p]  ; ## C22  FMC_HPC_LA18_CC_P
 set_property  -dict {PACKAGE_PIN  W26   IOSTANDARD LVDS_25 DIFF_TERM TRUE}  [get_ports laser_driver_n]  ; ## C23  FMC_HPC_LA18_CC_N
-set_property  -dict {PACKAGE_PIN  V28   IOSTANDARD LVCMOS25} [get_ports laser_gpio[0]]          ; ## C26  FMC_HPC_LA27_P
-set_property  -dict {PACKAGE_PIN  V29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[1]]          ; ## C27  FMC_HPC_LA27_N
-set_property  -dict {PACKAGE_PIN  V23   IOSTANDARD LVCMOS25} [get_ports laser_gpio[2]]          ; ## D20  FMC_HPC_LA17_CC_P
-set_property  -dict {PACKAGE_PIN  W24   IOSTANDARD LVCMOS25} [get_ports laser_gpio[3]]          ; ## D21  FMC_HPC_LA17_CC_N
-set_property  -dict {PACKAGE_PIN  P25   IOSTANDARD LVCMOS25} [get_ports laser_gpio[4]]          ; ## D23  FMC_HPC_LA23_P
-set_property  -dict {PACKAGE_PIN  P26   IOSTANDARD LVCMOS25} [get_ports laser_gpio[5]]          ; ## D24  FMC_HPC_LA23_N
-set_property  -dict {PACKAGE_PIN  R28   IOSTANDARD LVCMOS25} [get_ports laser_gpio[6]]          ; ## D26  FMC_HPC_LA26_P
-set_property  -dict {PACKAGE_PIN  T28   IOSTANDARD LVCMOS25} [get_ports laser_gpio[7]]          ; ## D27  FMC_HPC_LA26_N
-set_property  -dict {PACKAGE_PIN  V27   IOSTANDARD LVCMOS25} [get_ports laser_gpio[8]]          ; ## G24  FMC_HPC_LA22_P
-set_property  -dict {PACKAGE_PIN  W28   IOSTANDARD LVCMOS25} [get_ports laser_gpio[9]]          ; ## G25  FMC_HPC_LA22_N
-set_property  -dict {PACKAGE_PIN  T29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[10]]         ; ## G27  FMC_HPC_LA25_P
-set_property  -dict {PACKAGE_PIN  U29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[11]]         ; ## G28  FMC_HPC_LA25_N
-set_property  -dict {PACKAGE_PIN  R25   IOSTANDARD LVCMOS25} [get_ports laser_gpio[12]]         ; ## G30  FMC_HPC_LA29_P
-set_property  -dict {PACKAGE_PIN  R26   IOSTANDARD LVCMOS25} [get_ports laser_gpio[13]]         ; ## G31  FMC_HPC_LA29_N
-set_property  -dict {PACKAGE_PIN  N29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[14]]         ; ## G33  FMC_HPC_LA31_P
-set_property  -dict {PACKAGE_PIN  P29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[15]]         ; ## G34  FMC_HPC_LA31_N
+
+set_property  -dict {PACKAGE_PIN  V28   IOSTANDARD LVCMOS25} [get_ports laser_driver_en_n]        ; ## C26  FMC_HPC_LA27_P
+set_property  -dict {PACKAGE_PIN  V29   IOSTANDARD LVCMOS25} [get_ports laser_driver_otw]       ; ## C27  FMC_HPC_LA27_N
+
+set_property  -dict {PACKAGE_PIN  V23   IOSTANDARD LVCMOS25} [get_ports laser_gpio[0]]          ; ## D20  FMC_HPC_LA17_CC_P
+set_property  -dict {PACKAGE_PIN  W24   IOSTANDARD LVCMOS25} [get_ports laser_gpio[1]]          ; ## D21  FMC_HPC_LA17_CC_N
+set_property  -dict {PACKAGE_PIN  P25   IOSTANDARD LVCMOS25} [get_ports laser_gpio[2]]          ; ## D23  FMC_HPC_LA23_P
+set_property  -dict {PACKAGE_PIN  P26   IOSTANDARD LVCMOS25} [get_ports laser_gpio[3]]          ; ## D24  FMC_HPC_LA23_N
+set_property  -dict {PACKAGE_PIN  R28   IOSTANDARD LVCMOS25} [get_ports laser_gpio[4]]          ; ## D26  FMC_HPC_LA26_P
+set_property  -dict {PACKAGE_PIN  T28   IOSTANDARD LVCMOS25} [get_ports laser_gpio[5]]          ; ## D27  FMC_HPC_LA26_N
+set_property  -dict {PACKAGE_PIN  V27   IOSTANDARD LVCMOS25} [get_ports laser_gpio[6]]          ; ## G24  FMC_HPC_LA22_P
+set_property  -dict {PACKAGE_PIN  W28   IOSTANDARD LVCMOS25} [get_ports laser_gpio[7]]          ; ## G25  FMC_HPC_LA22_N
+set_property  -dict {PACKAGE_PIN  T29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[8]]          ; ## G27  FMC_HPC_LA25_P
+set_property  -dict {PACKAGE_PIN  U29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[9]]          ; ## G28  FMC_HPC_LA25_N
+set_property  -dict {PACKAGE_PIN  R25   IOSTANDARD LVCMOS25} [get_ports laser_gpio[10]]         ; ## G30  FMC_HPC_LA29_P
+set_property  -dict {PACKAGE_PIN  R26   IOSTANDARD LVCMOS25} [get_ports laser_gpio[11]]         ; ## G31  FMC_HPC_LA29_N
+set_property  -dict {PACKAGE_PIN  N29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[12]]         ; ## G33  FMC_HPC_LA31_P
+set_property  -dict {PACKAGE_PIN  P29   IOSTANDARD LVCMOS25} [get_ports laser_gpio[13]]         ; ## G34  FMC_HPC_LA31_N
 
 # AFE vref selection
 

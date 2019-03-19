@@ -149,9 +149,12 @@ module system_top (
   output                  laser_driver_p,
   output                  laser_driver_n,
 
+  output                  laser_driver_en_n,
+  input                   laser_driver_otw,
+
   // GPIO's for the laser board
 
-  inout       [15:0]      laser_gpio,
+  inout       [13:0]      laser_gpio,
 
   // Vref selects for AFE board
 
@@ -208,13 +211,13 @@ module system_top (
 
   // GPIO connections to the FMC connector
 
-  ad_iobuf #(.DATA_WIDTH(30)) i_fmc_iobuf (
-    .dio_t ({8'b0, gpio_t[53:38], 3'b0, gpio_t[34:32]}),
-    .dio_i ({gpio_o[61:32]}),
-    .dio_o ({gpio_i[61:32]}),
+  ad_iobuf #(.DATA_WIDTH(28)) i_fmc_iobuf (
+    .dio_t ({8'b0, gpio_t[51:38], 3'b0, gpio_t[34:32]}),
+    .dio_i ({gpio_o[59:32]}),
+    .dio_o ({gpio_i[59:32]}),
     .dio_p ({
-              afe_sel,          // 61:54 - output only
-              laser_gpio,       // 53:38
+              afe_sel,          // 59:52 - output only
+              laser_gpio,       // 51:38
               afe_adc_convst,   // 37    - output only
               afe_dac_load,     // 36    - output only
               afe_dac_clr_n,    // 35    - output only
@@ -294,6 +297,8 @@ module system_top (
     .rx_sysref_0 (rx_sysref),
     .spdif (spdif),
     .laser_driver (laser_driver),
+    .laser_driver_en_n (laser_driver_en_n),
+    .laser_driver_otw (laser_driver_otw),
     .iic_dac_scl_io (afe_dac_sda),
     .iic_dac_sda_io (afe_dac_scl),
     .spi0_clk_i (spi_adc_clk),

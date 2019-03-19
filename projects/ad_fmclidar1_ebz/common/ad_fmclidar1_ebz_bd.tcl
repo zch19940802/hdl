@@ -19,6 +19,8 @@ create_bd_port -dir I spi_afe_adc_sdo_i
 create_bd_port -dir O spi_afe_adc_sdo_o
 create_bd_port -dir I spi_afe_adc_sdi_i
 create_bd_port -dir O laser_driver
+create_bd_port -dir O laser_driver_en_n
+create_bd_port -dir I laser_driver_otw
 
 # adc peripherals - controlled by PS7/SPI0
 
@@ -146,15 +148,18 @@ ad_connect spi_afe_adc_sdi_i axi_spi_afe_adc/io1_i
 # must configure the AXI Memory Mapped registers and load the configuration.
 # This is why the parameter PULSE_PERIOD is 0.
 
-ad_ip_instance axi_pulse_gen axi_laser_driver [list \
+ad_ip_instance axi_laser_driver axi_laser_driver_0 [list \
  ASYNC_CLK_EN  1 \
  PULSE_WIDTH  1 \
  PULSE_PERIOD 0 \
 ]
+
 ad_ip_parameter sys_ps7 CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ 250
-ad_connect axi_laser_driver/ext_clk sys_ps7/FCLK_CLK2
-ad_connect laser_driver axi_laser_driver/pulse
-ad_connect axi_ad9694_fifo/adc_capture_start_in axi_laser_driver/pulse
+ad_connect axi_laser_driver_0/ext_clk sys_ps7/FCLK_CLK2
+ad_connect laser_driver axi_laser_driver_0/driver_pulse
+ad_connect laser_driver_en_n axi_laser_driver_0/driver_en_n
+ad_connect laser_driver_otw axi_laser_driver_0/driver_otw
+ad_connect axi_ad9694_fifo/adc_capture_start_in axi_laser_driver_0/driver_pulse
 
 # interconnect (cpu)
 
@@ -164,7 +169,7 @@ ad_cpu_interconnect 0x44AA0000 ad9694_jesd
 ad_cpu_interconnect 0x7c400000 ad9694_dma
 ad_cpu_interconnect 0x7c500000 axi_spi_vco
 ad_cpu_interconnect 0x7c600000 axi_spi_afe_adc
-ad_cpu_interconnect 0x7c700000 axi_laser_driver
+ad_cpu_interconnect 0x7c700000 axi_laser_driver_0
 
 # gt uses hp3, and 100MHz clock for both DRP and AXI4
 
@@ -181,5 +186,5 @@ ad_mem_hp2_interconnect sys_cpu_clk ad9694_dma/m_dest_axi
 ad_cpu_interrupt ps-11 mb-14 ad9694_jesd/irq
 ad_cpu_interrupt ps-13 mb-12 ad9694_dma/irq
 ad_cpu_interrupt ps-10 mb-15 axi_spi_vco/ip2intc_irpt
-ad_cpu_interrupt ps-9 mb-8  axi_spi_afe_adc/ip2intc_irpt
-
+ad_cpu_interrupt ps-9  mb-8  axi_spi_afe_adc/ip2intc_irpt
+ad_cpu_interrupt ps-8  mb-7  axi_laser_driver_0/irq
