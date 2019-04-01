@@ -5,12 +5,8 @@
 
 LIBRARY_NAME := util_clkdiv
 
-
 XILINX_DEPS += util_clkdiv.v
 XILINX_DEPS += util_clkdiv_constr.xdc
 XILINX_DEPS += util_clkdiv_ip.tcl
 
-INTEL_DEPS += util_clkdiv_alt.v
-INTEL_DEPS += util_clkdiv_hw.tcl
-
-include ../scripts/library.mk
+include ../../scripts/library.mk

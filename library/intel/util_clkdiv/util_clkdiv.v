@@ -39,7 +39,7 @@
 // clk_sel is 1. Provides a glitch free output clock
 // IP uses BUFR/BUFGCE_DIV and BUFGMUX_CTRL primitives
 
-module util_clkdiv_alt #(
+module util_clkdiv #(
   parameter SIM_DEVICE = "CYCLONE5",
   parameter CLOCK_TYPE = "Global Clock") (
 
@@ -61,13 +61,13 @@ end
 always @(posedge clk) begin
   enable <= ~enable;
 end
-  
+
 generate if (SIM_DEVICE == "CYCLONE5") begin
 	cyclonev_clkena #(
 		.clock_type ("Global Clock"),
 		.ena_register_mode ("falling edge"),
 		.lpm_type ("cyclonev_clkena")
-  ) clock_divider_by_2 ( 
+  ) clock_divider_by_2 (
 	.ena(enable),
 	.enaout(),
 	.inclk(clk),
@@ -76,4 +76,4 @@ generate if (SIM_DEVICE == "CYCLONE5") begin
 
 end endgenerate
 
-endmodule  // util_clkdiv_alt
+endmodule  // util_clkdiv
