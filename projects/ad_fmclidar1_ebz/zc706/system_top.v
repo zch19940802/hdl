@@ -150,7 +150,7 @@ module system_top (
   output                  laser_driver_n,
 
   output                  laser_driver_en_n,
-  input                   laser_driver_otw,
+  input                   laser_driver_otw_n,
 
   // GPIO's for the laser board
 
@@ -298,7 +298,7 @@ module system_top (
     .spdif (spdif),
     .laser_driver (laser_driver),
     .laser_driver_en_n (laser_driver_en_n),
-    .laser_driver_otw (laser_driver_otw),
+    .laser_driver_otw_n (laser_driver_otw_n),
     .iic_dac_scl_io (afe_dac_sda),
     .iic_dac_sda_io (afe_dac_scl),
     .spi0_clk_i (spi_adc_clk),

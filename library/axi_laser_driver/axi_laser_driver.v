@@ -70,7 +70,7 @@ module axi_laser_driver #(
   input                   ext_clk,
   output                  driver_en_n,
   output                  driver_pulse,
-  input                   driver_otw,
+  input                   driver_otw_n,
 
   // interrupt
 
@@ -145,7 +145,7 @@ module axi_laser_driver #(
     .LASER_DRIVER_ID (1))
   i_laser_driver_regmap (
     .driver_en_n (driver_en_n),
-    .driver_otw (driver_otw),
+    .driver_otw_n (driver_otw_n),
     .pulse (driver_pulse),
     .irq (irq),
     .up_rstn (up_rstn),

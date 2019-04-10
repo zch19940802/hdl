@@ -20,7 +20,7 @@ create_bd_port -dir O spi_afe_adc_sdo_o
 create_bd_port -dir I spi_afe_adc_sdi_i
 create_bd_port -dir O laser_driver
 create_bd_port -dir O laser_driver_en_n
-create_bd_port -dir I laser_driver_otw
+create_bd_port -dir I laser_driver_otw_n
 
 # adc peripherals - controlled by PS7/SPI0
 
@@ -158,7 +158,7 @@ ad_ip_parameter sys_ps7 CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ 250
 ad_connect axi_laser_driver_0/ext_clk sys_ps7/FCLK_CLK2
 ad_connect laser_driver axi_laser_driver_0/driver_pulse
 ad_connect laser_driver_en_n axi_laser_driver_0/driver_en_n
-ad_connect laser_driver_otw axi_laser_driver_0/driver_otw
+ad_connect laser_driver_otw_n axi_laser_driver_0/driver_otw_n
 ad_connect axi_ad9694_fifo/adc_capture_start_in axi_laser_driver_0/driver_pulse
 
 # interconnect (cpu)

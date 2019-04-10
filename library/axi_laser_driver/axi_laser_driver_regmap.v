@@ -42,7 +42,7 @@ module axi_laser_driver_regmap #(
   // control and status signals
 
   output                  driver_en_n,
-  input                   driver_otw,
+  input                   driver_otw_n,
 
   input                   pulse,
   output reg              irq,
@@ -108,10 +108,10 @@ module axi_laser_driver_regmap #(
       if (up_rreq_int_s == 1'b1) begin
         case (up_raddr[4:0])
           4'h0: up_rdata <= {31'h0, up_driver_en_n};
-          4'h1: up_rdata <= {31'h0, up_driver_otw_s};
           4'h8: up_rdata <= {30'h0, up_irq_mask};
           4'h9: up_rdata <= {30'h0, up_irq_source};
           4'hA: up_rdata <= {30'h0, up_irq_pending_s};
+          4'h1: up_rdata <= {31'h0, up_driver_otw_n_s};
           default: up_rdata <= 0;
         endcase
       end else begin
@@ -126,8 +126,8 @@ module axi_laser_driver_regmap #(
   // temperature warning signal
 
   assign up_irq_pending_s = ~up_irq_mask & up_irq_source;
-  assign up_irq_trigger_s  = {up_driver_otw_s, up_pulse};
   assign up_irq_source_clear_s = (up_wreq == 1'b1 && up_waddr[3:0] == 4'hC) ? up_wdata[1:0] : 2'b00;
+  assign up_irq_trigger_s = {up_driver_otw_n_s, up_pulse};
 
   always @(posedge up_clk) begin
     if (up_rstn == 1'b0) begin
@@ -151,10 +151,10 @@ module axi_laser_driver_regmap #(
     .NUM_OF_BITS (1),
     .ASYNC_CLK (1))
   i_driver_otw_sync (
-    .in (driver_otw),
+    .in (driver_otw_n),
     .out_clk (up_clk),
     .out_resetn (1'b1),
-    .out (up_driver_otw_s));
+    .out (up_driver_otw_n_s));
 
   sync_bits #(
     .NUM_OF_BITS (1),
