@@ -105,9 +105,9 @@ module axi_laser_driver #(
 
   // local parameters
 
-  localparam [31:0] CORE_VERSION = {16'h0000,     /* MAJOR */
-                                     8'h01,       /* MINOR */
-                                     8'h00};      /* PATCH */ // 0.01.0
+  localparam [31:0] CORE_VERSION = {16'h0001,     /* MAJOR */
+                                     8'h00,       /* MINOR */
+                                     8'h61};      /* PATCH */ // 1.00.a
   localparam [31:0] CORE_MAGIC = 32'h4C534452;    // LSDR
 
   assign up_clk = s_axi_aclk;
