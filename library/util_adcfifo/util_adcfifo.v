@@ -41,7 +41,10 @@ module util_adcfifo #(
   parameter   ADC_DATA_WIDTH = 256,
   parameter   DMA_DATA_WIDTH =  64,
   parameter   DMA_READY_ENABLE = 1,
-  parameter   DMA_ADDRESS_WIDTH =  10) (
+  parameter   DMA_ADDRESS_WIDTH =  10,
+  parameter   SYNCED_CAPTURE_ENABLE = 0,
+  parameter   ASYNC_CAPTURE_IN = 1,
+  parameter   CAPTURE_TILL_FULL = 0) (
 
   // fifo interface
 
@@ -50,6 +53,11 @@ module util_adcfifo #(
   input                                 adc_wr,
   input       [ADC_DATA_WIDTH-1:0]      adc_wdata,
   output                                adc_wovf,
+
+  // synchronization interface
+
+  output                                adc_capture_start_out,
+  input                                 adc_capture_start_in,
 
   // dma interface
 
@@ -79,6 +87,7 @@ module util_adcfifo #(
   reg         [ADC_ADDRESS_WIDTH-1:0]   adc_waddr_int = 'd0;
   reg                                   adc_waddr_rel_t = 'd0;
   reg         [ADC_ADDRESS_WIDTH-1:0]   adc_waddr_rel = 'd0;
+  reg                                   adc_capture_arm = 1'b0;
   reg                                   dma_rst = 'd0;
   reg         [ 2:0]                    dma_waddr_rel_t_m = 'd0;
   reg         [ADC_ADDRESS_WIDTH-1:0]   dma_waddr_rel = 'd0;
@@ -86,6 +95,7 @@ module util_adcfifo #(
   reg                                   dma_rd_d = 'd0;
   reg         [DMA_DATA_WIDTH-1:0]      dma_rdata_d = 'd0;
   reg         [DMA_ADDRESS_WIDTH-1:0]   dma_raddr = 'd0;
+  reg         [ 2:0]                    dma_capture_start_in = 'd0;
 
   // internal signals
 
@@ -95,6 +105,9 @@ module util_adcfifo #(
   wire                                  dma_wready_s;
   wire                                  dma_rd_s;
   wire        [DMA_DATA_WIDTH-1:0]      dma_rdata_s;
+  wire                                  dma_read_rst_s;
+  wire                                  adc_capture_start_s;
+  wire                                  adc_end_of_capture_s;
 
   // write interface
 
@@ -107,22 +120,85 @@ module util_adcfifo #(
     .rstn (),
     .rst (adc_rst_s));
 
+  // optional capture synchronization
+
+  generate
+  if (SYNCED_CAPTURE_ENABLE) begin : adc_synced_capture
+
+    if (ASYNC_CAPTURE_IN) begin
+      sync_bits #(
+        .NUM_OF_BITS (1),
+        .ASYNC_CLK (1))
+      i_adc_capture_start_sync (
+        .in (adc_capture_start_in),
+        .out_clk (adc_clk),
+        .out_resetn (1'b1),
+        .out (adc_capture_start_s));
+    end else begin
+      assign adc_capture_start_s = adc_capture_start_in;
+    end
+
+    always @(posedge adc_clk) begin
+      if (adc_rst_s == 1'b1) begin
+        adc_xfer_req_m <= 'd0;
+        adc_xfer_init <= 'd0;
+      end else begin
+        adc_xfer_req_m <= {adc_xfer_req_m[1:0], dma_xfer_req};
+        adc_xfer_init <= adc_capture_start_s;
+      end
+    end
+
+  end else begin : adc_async_capture
+    always @(posedge adc_clk) begin
+      if (adc_rst_s == 1'b1) begin
+        adc_xfer_req_m <= 'd0;
+        adc_xfer_init <= 'd0;
+      end else begin
+        adc_xfer_req_m <= {adc_xfer_req_m[1:0], dma_xfer_req};
+        adc_xfer_init <= adc_xfer_req_m[1] & ~adc_xfer_req_m[2];
+      end
+    end
+
+  end
+  endgenerate
+
+  generate
+  if (CAPTURE_TILL_FULL) begin : capture_till_full
+
+    assign adc_end_of_capture_s = (adc_waddr_int >= ADC_ADDR_LIMIT-1);
+
+  end else begin : capture_till_next_transfer
+
+    assign adc_end_of_capture_s = (adc_waddr_int >= ADC_ADDR_LIMIT-1) ||
+                                  (adc_xfer_req_m[2] == 1'b0);
+  end
+  endgenerate
+
   always @(posedge adc_clk) begin
     if (adc_rst_s == 1'b1) begin
-      adc_xfer_req_m <= 'd0;
-      adc_xfer_init <= 'd0;
       adc_xfer_enable <= 'd0;
     end else begin
-      adc_xfer_req_m <= {adc_xfer_req_m[1:0], dma_xfer_req};
-      adc_xfer_init <= adc_xfer_req_m[1] & ~adc_xfer_req_m[2];
       if (adc_xfer_init == 1'b1) begin
         adc_xfer_enable <= 1'b1;
-      end else if ((adc_waddr_int >= ADC_ADDR_LIMIT - 1) ||
-        (adc_xfer_req_m[2] == 1'b0)) begin
+      end else if (adc_end_of_capture_s == 1'b1) begin
         adc_xfer_enable <= 1'b0;
       end
     end
   end
+
+  // additional synchronization signal for external use
+
+  always @(posedge adc_clk) begin
+    if (adc_rst_s == 1'b1) begin
+      adc_capture_arm <= 1'b0;
+    end else if (adc_xfer_init == 1'b1) begin
+      adc_capture_arm <= 1'b1;
+    end else if (adc_wr == 1'b1) begin
+      adc_capture_arm <= 1'b0;
+    end
+  end
+
+  assign adc_capture_start_out = adc_wr & adc_capture_arm;
 
   always @(posedge adc_clk) begin
     if (adc_rst_s == 1'b1) begin
@@ -178,11 +254,26 @@ module util_adcfifo #(
     end
   end
 
+  generate
+  if (SYNCED_CAPTURE_ENABLE) begin : dma_synced_capture
+
+    always @(posedge dma_clk) begin
+      dma_capture_start_in <= {dma_capture_start_in[1:0], adc_capture_start_in};
+    end
+    assign dma_read_rst_s = dma_capture_start_in[2];
+
+  end else begin : dma_asynced_capture
+
+    assign dma_read_rst_s = ~dma_xfer_req;
+
+  end
+  endgenerate
+
   assign dma_wready_s = (DMA_READY_ENABLE == 0) ? 1'b1 : dma_wready;
   assign dma_rd_s = (dma_raddr < dma_waddr_rel_s) ? dma_wready_s : 1'b0;
 
   always @(posedge dma_clk) begin
-    if (dma_xfer_req == 1'b0) begin
+    if (dma_read_rst_s == 1'b1) begin
       dma_rd <= 'd0;
       dma_rd_d <= 'd0;
       dma_rdata_d <= 'd0;
