@@ -79,7 +79,7 @@ ad_connect sys_cpu_clk util_ad9694_xcvr/up_clk
 
 # instantiate the axi_adcfifo
 
-ad_adcfifo_create axi_ad9694_fifo $ADC_DATA_WIDTH $DMA_DATA_WIDTH 1
+ad_adcfifo_create axi_ad9694_fifo $ADC_DATA_WIDTH $DMA_DATA_WIDTH $ADC_FIFO_ADDRESS_WIDTH
 
 # reference clocks & resets
 
