@@ -44,6 +44,8 @@ ad_ip_instance axi_dmac ad9694_dma [list \
   DMA_TYPE_DEST 0 \
   DMA_DATA_WIDTH_SRC $DMA_DATA_WIDTH \
   DMA_DATA_WIDTH_DEST 64 \
+  SYNC_TRANSFER_START 1 \
+  FIFO_SIZE 32 \
 ]
 
 # 3-wire SPI for clock synthesizer & VCO - 12.5MHz SCLK rate
@@ -77,12 +79,21 @@ ad_ip_instance util_adxcvr util_ad9694_xcvr [list \
 ad_connect sys_cpu_resetn util_ad9694_xcvr/up_rstn
 ad_connect sys_cpu_clk util_ad9694_xcvr/up_clk
 
-# instantiate the axi_adcfifo
+# laser driver - runs in asynchronous mode, using a 250MHz reference clock
+# NOTE: After power up the driver will not generate any pulses, the software
+# must configure the AXI Memory Mapped registers and load the configuration.
+# This is why the parameter PULSE_PERIOD is 0.
 
-ad_adcfifo_create axi_ad9694_fifo $ADC_DATA_WIDTH $DMA_DATA_WIDTH $ADC_FIFO_ADDRESS_WIDTH
-ad_ip_parameter axi_ad9694_fifo CONFIG.SYNCED_CAPTURE_ENABLE 1
-ad_ip_parameter axi_ad9694_fifo CONFIG.CAPTURE_TILL_FULL 1
-ad_ip_parameter axi_ad9694_fifo CONFIG.ASYNC_CAPTURE_IN 0
+ad_ip_instance axi_laser_driver axi_laser_driver_0 [list \
+ ASYNC_CLK_EN  1 \
+ PULSE_WIDTH  1 \
+ PULSE_PERIOD 0 \
+]
+
+# a synchronization module, which make sure that the DMA will catch the pulse as
+# its sync signal
+create_bd_cell -type module -reference util_axis_syncgen util_axis_syncgen_0
+set_property -dict [list CONFIG.ASYNC_SYNC {0}] [get_bd_cells util_axis_syncgen_0]
 
 # reference clocks & resets
 
@@ -103,7 +114,6 @@ ad_connect ad9694_jesd/rx_data_tvalid ad9694_tpl_core/link_valid
 ad_connect ad9694_jesd/rx_data_tdata ad9694_tpl_core/link_data
 
 ad_connect rx_device_clk util_ad9694_cpack/clk
-ad_connect rx_device_clk_rstgen/peripheral_reset util_ad9694_cpack/reset
 
 for {set i 0} {$i < $NUM_OF_CHANNELS} {incr i} {
   ad_connect ad9694_tpl_core/adc_enable_$i util_ad9694_cpack/enable_$i
@@ -111,18 +121,13 @@ for {set i 0} {$i < $NUM_OF_CHANNELS} {incr i} {
 }
 ad_connect ad9694_tpl_core/adc_valid_0 util_ad9694_cpack/fifo_wr_en
 
-ad_connect rx_device_clk axi_ad9694_fifo/adc_clk
-ad_connect rx_device_clk_rstgen/peripheral_reset axi_ad9694_fifo/adc_rst
-ad_connect util_ad9694_cpack/packed_fifo_wr_en axi_ad9694_fifo/adc_wr
-ad_connect util_ad9694_cpack/packed_fifo_wr_data axi_ad9694_fifo/adc_wdata
-ad_connect sys_cpu_clk axi_ad9694_fifo/dma_clk
-ad_connect sys_cpu_clk ad9694_dma/s_axis_aclk
+ad_connect rx_device_clk ad9694_dma/s_axis_aclk
 ad_connect sys_cpu_resetn ad9694_dma/m_dest_axi_aresetn
-ad_connect axi_ad9694_fifo/dma_wr ad9694_dma/s_axis_valid
-ad_connect axi_ad9694_fifo/dma_wdata ad9694_dma/s_axis_data
-ad_connect axi_ad9694_fifo/dma_wready ad9694_dma/s_axis_ready
-ad_connect axi_ad9694_fifo/dma_xfer_req ad9694_dma/s_axis_xfer_req
-ad_connect ad9694_tpl_core/adc_dovf axi_ad9694_fifo/adc_wovf
+
+ad_connect util_ad9694_cpack/packed_fifo_wr_en ad9694_dma/s_axis_valid
+ad_connect util_ad9694_cpack/packed_fifo_wr_data ad9694_dma/s_axis_data
+
+#ad_connect ad9694_tpl_core/adc_dovf axi_ad9694_fifo/adc_wovf
 
 ad_connect sys_cpu_clk  axi_spi_vco/ext_spi_clk
 ad_connect spi_vco axi_spi_vco/SPI_0
@@ -146,22 +151,20 @@ ad_connect spi_afe_adc_sdo_i axi_spi_afe_adc/io0_i
 ad_connect spi_afe_adc_sdo_o axi_spi_afe_adc/io0_o
 ad_connect spi_afe_adc_sdi_i axi_spi_afe_adc/io1_i
 
-# laser driver - runs in asynchronous mode, using a 250MHz reference clock
-# NOTE: After power up the driver will not generate any pulses, the software
-# must configure the AXI Memory Mapped registers and load the configuration.
-# This is why the parameter PULSE_PERIOD is 0.
-
-ad_ip_instance axi_laser_driver axi_laser_driver_0 [list \
- ASYNC_CLK_EN  1 \
- PULSE_WIDTH  1 \
- PULSE_PERIOD 0 \
-]
+# laser driver and sync synchronizer
 
 ad_connect rx_device_clk axi_laser_driver_0/ext_clk
 ad_connect laser_driver axi_laser_driver_0/driver_pulse
 ad_connect laser_driver_en_n axi_laser_driver_0/driver_en_n
 ad_connect laser_driver_otw_n axi_laser_driver_0/driver_otw_n
-ad_connect axi_ad9694_fifo/adc_capture_start_in axi_laser_driver_0/driver_pulse
+ad_connect axi_laser_driver_0/driver_dp_reset util_ad9694_cpack/reset
+
+ad_connect rx_device_clk util_axis_syncgen_0/s_axis_aclk
+ad_connect util_axis_syncgen_0/s_axis_aresetn VCC
+ad_connect util_axis_syncgen_0/s_axis_valid util_ad9694_cpack/packed_fifo_wr_en
+ad_connect util_axis_syncgen_0/s_axis_ready VCC
+ad_connect util_axis_syncgen_0/ext_sync axi_laser_driver_0/driver_pulse
+ad_connect util_axis_syncgen_0/s_axis_sync ad9694_dma/s_axis_user
 
 # interconnect (cpu)
 

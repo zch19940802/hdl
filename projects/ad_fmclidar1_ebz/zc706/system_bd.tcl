@@ -14,15 +14,12 @@ set ADC_DATA_WIDTH [expr $CHANNEL_DATA_WIDTH * $NUM_OF_CHANNELS]
 set DMA_DATA_WIDTH [expr $ADC_DATA_WIDTH < 128 ? $ADC_DATA_WIDTH : 128]
 set SAMPLE_WIDTH [expr $ADC_RESOLUTION > 8 ? 16 : 8]
 
-#
-# FIFO depth is 16Kb - 512 samples / channel
-#
-# Used equation: FIFO_DEPTH = ADC_DATA_WIDTH * 2 ^ ADC_FIFO_ADDRESS_WIDTH
-#                   16Kb   =      128        * 2 ^           7
-#
-set ADC_FIFO_ADDRESS_WIDTH 7
+# add RTL sources which will be instantiated in system_bd directly
+adi_project_files ad_fmclidar1_ebz_zc706 [list \
+  "$ad_hdl_dir/library/util_cdc/sync_bits.v" \
+  "$ad_hdl_dir/library/common/util_axis_syncgen.v" ]
 
+# source all the block designs
 source $ad_hdl_dir/projects/common/zc706/zc706_system_bd.tcl
-source $ad_hdl_dir/projects/common/xilinx/adcfifo_bd.tcl
 source ../common/ad_fmclidar1_ebz_bd.tcl
 
