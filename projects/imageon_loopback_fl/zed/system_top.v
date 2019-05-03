@@ -66,11 +66,6 @@ module system_top (
 
   gpio_bd,
 
-  hdmi_out_clk,
-  hdmi_vsync,
-  hdmi_hsync,
-  hdmi_data_e,
-  hdmi_data,
 
   i2s_mclk,
   i2s_bclk,
@@ -124,11 +119,6 @@ module system_top (
 
   inout   [31:0]  gpio_bd;
 
-  output          hdmi_out_clk;
-  output          hdmi_vsync;
-  output          hdmi_hsync;
-  output          hdmi_data_e;
-  output  [15:0]  hdmi_data;
 
   output          spdif;
 
@@ -171,33 +161,9 @@ module system_top (
   wire    [ 1:0]  iic_mux_sda_o_s;
   wire            iic_mux_sda_t_s;
 
-  wire            hdmi_rx_clk;
-  wire            hdmi_tx_clk;
-  wire            hdmi_rx_clk_bufio;
-
-  wire    [15:0]  hdmi_rx_data;
-  reg     [15:0]  hdmi_rx_data_in;
-  reg     [15:0]  hdmi_tx_data;
-
-  always @(posedge hdmi_rx_clk_bufio) begin
-    hdmi_rx_data_in <= hdmi_rx_data;
-    hdmi_tx_data <= hdmi_rx_data_in;
-  end
 
   // instantiations
 
-  BUFIO (
-    .I (hdmi_rx_clk),
-    .O (hdmi_rx_clk_bufio));
-
-  ODDR #(.INIT(1'b0)) i_clk_oddr (
-    .R (1'b0),
-    .S (1'b0),
-    .CE (1'b1),
-    .D1 (1'b1),
-    .D2 (1'b0),
-    .C (hdmi_rx_clk_bufio),
-    .Q (hdmi_tx_clk));
 
   ad_iobuf #(.DATA_WIDTH(1)) i_gpio_hdmi (
     .dio_t (gpio_t[32]),
@@ -260,11 +226,10 @@ module system_top (
     .gpio_i (gpio_i),
     .gpio_o (gpio_o),
     .gpio_t (gpio_t),
-    .hdmi_data (hdmi_data),
-    .hdmi_data_e (hdmi_data_e),
-    .hdmi_hsync (hdmi_hsync),
-    .hdmi_out_clk (hdmi_out_clk),
-    .hdmi_vsync (hdmi_vsync),
+    .hdmi_tx_data(hdmi_tx_data),
+    .hdmi_tx_clk(hdmi_tx_clk),
+    .hdmi_rx_data(hdmi_rx_data),
+    .hdmi_rx_clk(hdmi_rx_clk),
     .i2s_bclk (i2s_bclk),
     .i2s_lrclk (i2s_lrclk),
     .i2s_mclk (i2s_mclk),
