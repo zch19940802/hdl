@@ -71,6 +71,7 @@ module axi_laser_driver #(
   output                  driver_en_n,
   output                  driver_pulse,
   input                   driver_otw_n,
+  output                  driver_dp_reset,
 
   // interrupt
 
@@ -78,9 +79,10 @@ module axi_laser_driver #(
 
   // internal signals
 
-  reg             up_wack;
-  reg             up_rack;
-  reg     [31:0]  up_rdata;
+  reg             up_wack = 1'b0;
+  reg             up_rack = 1'b0;
+  reg     [31:0]  up_rdata = 32'b0;
+  reg             driver_pulse_int_d = 1'b0;
 
   // internal signals
 
@@ -102,6 +104,7 @@ module axi_laser_driver #(
   wire    [31:0]  pulse_period_s;
   wire            load_config_s;
   wire            pulse_gen_resetn;
+  wire            driver_pulse_int_s;
 
   // local parameters
 
@@ -146,7 +149,7 @@ module axi_laser_driver #(
   i_laser_driver_regmap (
     .driver_en_n (driver_en_n),
     .driver_otw_n (driver_otw_n),
-    .pulse (driver_pulse),
+    .pulse (driver_pulse_int_s),
     .irq (irq),
     .up_rstn (up_rstn),
     .up_clk (up_clk),
@@ -184,7 +187,17 @@ module axi_laser_driver #(
     .pulse_width (pulse_width_s),
     .pulse_period (pulse_period_s),
     .load_config (load_config_s),
-    .pulse (driver_pulse));
+    .pulse (driver_pulse_int_s));
+
+  // data path reset generation
+  // this logic will generate a reset signal right before the generated pulse
+  // in order to use it for resetting the cpack module, to synchronize it to
+  // the driver pulse
+  always @(posedge clk) begin
+      driver_pulse_int_d <= driver_pulse_int_s;
+  end
+  assign driver_dp_reset = driver_pulse_int_s & ~driver_pulse_int_d;
+  assign driver_pulse = driver_pulse_int_d;
 
   // AXI Memory Mapped Wrapper
 
