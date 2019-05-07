@@ -82,6 +82,7 @@ ad_connect sys_cpu_clk util_ad9694_xcvr/up_clk
 ad_adcfifo_create axi_ad9694_fifo $ADC_DATA_WIDTH $DMA_DATA_WIDTH $ADC_FIFO_ADDRESS_WIDTH
 ad_ip_parameter axi_ad9694_fifo CONFIG.SYNCED_CAPTURE_ENABLE 1
 ad_ip_parameter axi_ad9694_fifo CONFIG.CAPTURE_TILL_FULL 1
+ad_ip_parameter axi_ad9694_fifo CONFIG.ASYNC_CAPTURE_IN 0
 
 # reference clocks & resets
 
@@ -156,8 +157,7 @@ ad_ip_instance axi_laser_driver axi_laser_driver_0 [list \
  PULSE_PERIOD 0 \
 ]
 
-ad_ip_parameter sys_ps7 CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ 250
-ad_connect axi_laser_driver_0/ext_clk sys_ps7/FCLK_CLK2
+ad_connect rx_device_clk axi_laser_driver_0/ext_clk
 ad_connect laser_driver axi_laser_driver_0/driver_pulse
 ad_connect laser_driver_en_n axi_laser_driver_0/driver_en_n
 ad_connect laser_driver_otw_n axi_laser_driver_0/driver_otw_n
