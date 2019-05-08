@@ -761,3 +761,81 @@ proc ad_cpu_interrupt {p_ps_index p_mb_index p_name} {
 ###################################################################################################
 ###################################################################################################
 
+# converting a string of ascii characters to a list of corresponding hex values
+proc char2hexlist {str} {
+
+  # string to int list
+  binary scan $str c* int_list
+
+  # declare empty list
+  set hex_list {}
+
+  # convert int to hex and append to list
+  foreach i $int_list {
+    lappend hex_list [format %0.2X [expr {$i & 0xFF}]]
+  }
+  set hex_list;
+}
+
+###################################################################################################
+###################################################################################################
+
+proc sysid_gen_init_file {} {
+
+  # time and date
+  set thetime [clock seconds]
+  set timedate_string "time and date : [clock format $thetime -format %H:%M:%S] - [clock format $thetime -format %D]"
+
+  # convert string to hex list
+  set timedate_list [char2hexlist $timedate_string]
+
+  # padding with 00
+  while {[llength $timedate_list] < 64} {
+    lappend timedate_list 00
+  }
+
+  # getting project name hex list
+  set projname_list [char2hexlist [current_project]]
+
+  # padding with 00
+  while {[llength $projname_list] < 64} {
+    lappend projname_list 00
+  }
+
+  # custom string
+  set custom_string "custom string placeholder"
+  set custom_list [char2hexlist $custom_string]
+
+  # padding with 00
+  while {[llength $custom_list] < 64} {
+    lappend custom_list 00
+  }
+
+  # git sha
+  set gitsha_string [exec git rev-parse HEAD]
+  set gitsha_list [char2hexlist $gitsha_string]
+
+  #padding with 00
+  while {[llength $gitsha_list] < 64} {
+    lappend gitsha_list 00
+  }
+
+  # merge lists
+  set mem_list [list {*}$timedate_list {*}$projname_list {*}$custom_list {*}$gitsha_list]
+
+  # creating file
+  set mem_file [open "mem_init.txt" "w"]
+
+  #making sure file is empty
+  chan truncate $mem_file 0
+
+  # writting 32 bits to each line
+  for {set i 0} {$i < [llength $mem_list]} {incr i} {
+    if { ($i+1) % 4 == 0} {
+      puts $mem_file [lindex $mem_list $i]
+    } else {
+      puts -nonewline $mem_file [lindex $mem_list $i]
+    }
+  }
+  close $mem_file
+}
