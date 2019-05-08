@@ -47,6 +47,7 @@ module axi_laser_driver_regmap #(
   input                   pulse,
   output reg              irq,
 
+  input       [31:0]      up_ext_clk_count,
   // processor interface
 
   input                   up_rstn,
@@ -114,6 +115,7 @@ module axi_laser_driver_regmap #(
         case (up_raddr[4:0])
           4'h0: up_rdata <= {31'h0, up_driver_en_n};
           4'h1: up_rdata <= {31'h0, up_driver_otw_n_s};
+          4'h2: up_rdata <= up_ext_clk_count;
           4'h8: up_rdata <= {29'h0, up_irq_mask};
           4'h9: up_rdata <= {29'h0, up_irq_source};
           4'hA: up_rdata <= {29'h0, up_irq_pending_s};
@@ -164,18 +166,18 @@ module axi_laser_driver_regmap #(
     .NUM_OF_BITS (1),
     .ASYNC_CLK (1))
   i_driver_otw_sync (
-    .in (driver_otw_n),
+    .in_bits (driver_otw_n),
     .out_clk (up_clk),
     .out_resetn (1'b1),
-    .out (up_driver_otw_n_s));
+    .out_bits (up_driver_otw_n_s));
 
   sync_bits #(
     .NUM_OF_BITS (1),
     .ASYNC_CLK (1))
   i_pulse_sync (
-    .in (pulse),
+    .in_bits (pulse),
     .out_clk (up_clk),
     .out_resetn (1'b1),
-    .out (up_pulse));
+    .out_bits (up_pulse));
 
 endmodule

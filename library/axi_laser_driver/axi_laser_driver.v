@@ -105,6 +105,7 @@ module axi_laser_driver #(
   wire            load_config_s;
   wire            pulse_gen_resetn;
   wire            driver_pulse_int_s;
+  wire    [31:0]  up_ext_clk_count_s;
 
   // local parameters
 
@@ -150,6 +151,7 @@ module axi_laser_driver #(
     .driver_en_n (driver_en_n),
     .driver_otw_n (driver_otw_n),
     .pulse (driver_pulse_int_s),
+    .up_ext_clk_count (up_ext_clk_count_s),
     .irq (irq),
     .up_rstn (up_rstn),
     .up_clk (up_clk),
@@ -198,6 +200,15 @@ module axi_laser_driver #(
   end
   assign driver_dp_reset = driver_pulse_int_s & ~driver_pulse_int_d;
   assign driver_pulse = driver_pulse_int_d;
+
+  // clock monitor for the external clock
+
+  up_clock_mon i_clock_mon (
+    .up_rstn (up_rstn),
+    .up_clk (up_clk),
+    .up_d_count (up_ext_clk_count_s),
+    .d_rst (~pulse_gen_resetn),
+    .d_clk (ext_clk));
 
   // AXI Memory Mapped Wrapper
 
