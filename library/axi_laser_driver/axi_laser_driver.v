@@ -72,6 +72,7 @@ module axi_laser_driver #(
   output                  driver_pulse,
   input                   driver_otw_n,
   output                  driver_dp_reset,
+  output reg  [ 1:0]      tia_chsel,
 
   // interrupt
 
@@ -83,6 +84,7 @@ module axi_laser_driver #(
   reg             up_rack = 1'b0;
   reg     [31:0]  up_rdata = 32'b0;
   reg             driver_pulse_int_d = 1'b0;
+  reg     [ 1:0]  sequence_counter = 2'b00;
 
   // internal signals
 
@@ -104,8 +106,17 @@ module axi_laser_driver #(
   wire    [31:0]  pulse_period_s;
   wire            load_config_s;
   wire            pulse_gen_resetn;
+  wire    [31:0]  pulse_counter_s;
   wire            driver_pulse_int_s;
   wire    [31:0]  up_ext_clk_count_s;
+  wire            sequence_en_s;
+  wire            auto_sequence_s;
+  wire    [31:0]  sequence_offset_s;
+  wire    [ 1:0]  auto_seq0_s;
+  wire    [ 1:0]  auto_seq1_s;
+  wire    [ 1:0]  auto_seq2_s;
+  wire    [ 1:0]  auto_seq3_s;
+  wire    [ 1:0]  manual_select_s;
 
   // local parameters
 
@@ -148,11 +159,20 @@ module axi_laser_driver #(
     .ID (ID),
     .LASER_DRIVER_ID (1))
   i_laser_driver_regmap (
+    .clk (clk),
     .driver_en_n (driver_en_n),
     .driver_otw_n (driver_otw_n),
     .pulse (driver_pulse_int_s),
     .up_ext_clk_count (up_ext_clk_count_s),
     .irq (irq),
+    .sequence_en (sequence_en_s),
+    .auto_sequence (auto_sequence_s),
+    .sequence_offset (sequence_offset_s),
+    .auto_seq0 (auto_seq0_s),
+    .auto_seq1 (auto_seq1_s),
+    .auto_seq2 (auto_seq2_s),
+    .auto_seq3 (auto_seq3_s),
+    .manual_select (manual_select_s),
     .up_rstn (up_rstn),
     .up_clk (up_clk),
     .up_wreq (up_wreq_s),
@@ -178,18 +198,19 @@ module axi_laser_driver #(
     end
   end
 
-  // generic PWM generator
+  // generic PWM generator's
 
   util_pulse_gen  #(
     .PULSE_WIDTH(PULSE_WIDTH),
     .PULSE_PERIOD(PULSE_PERIOD))
-  util_pulse_gen_i(
+  i_laser_driver_pulse (
     .clk (clk),
     .rstn (pulse_gen_resetn),
     .pulse_width (pulse_width_s),
     .pulse_period (pulse_period_s),
     .load_config (load_config_s),
-    .pulse (driver_pulse_int_s));
+    .pulse (driver_pulse_int_s),
+    .pulse_counter (pulse_counter_s));
 
   // data path reset generation
   // this logic will generate a reset signal right before the generated pulse
@@ -209,6 +230,40 @@ module axi_laser_driver #(
     .up_d_count (up_ext_clk_count_s),
     .d_rst (~pulse_gen_resetn),
     .d_clk (ext_clk));
+
+  // TIA sequencer
+
+  always @(posedge clk) begin
+    if (sequence_en_s == 1'b0) begin
+      sequence_counter <= 2'b00;
+    end else begin
+      if (pulse_counter_s == sequence_offset_s) begin
+        if (auto_sequence_s) begin
+          sequence_counter <= sequence_counter + 1'b1;
+        end
+      end
+    end
+  end
+
+  always @(posedge clk) begin
+    if (sequence_en_s == 1'b0) begin
+      tia_chsel <= 2'b0;
+    end else begin
+      if (pulse_counter_s == sequence_offset_s) begin
+        if (auto_sequence_s) begin
+          case (sequence_counter)
+            2'b00   : tia_chsel <= auto_seq0_s;
+            2'b01   : tia_chsel <= auto_seq1_s;
+            2'b10   : tia_chsel <= auto_seq2_s;
+            2'b11   : tia_chsel <= auto_seq3_s;
+            default : tia_chsel <= 2'b00;
+          endcase
+        end else begin
+          tia_chsel <= manual_select_s;
+        end
+      end
+    end
+  end
 
   // AXI Memory Mapped Wrapper
 

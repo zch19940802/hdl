@@ -41,6 +41,7 @@ module axi_laser_driver_regmap #(
 
   // control and status signals
 
+  input                   clk,
   output                  driver_en_n,
   input                   driver_otw_n,
 
@@ -48,6 +49,20 @@ module axi_laser_driver_regmap #(
   output reg              irq,
 
   input       [31:0]      up_ext_clk_count,
+
+  // TIA sequencer
+
+  output                  sequence_en,
+  output                  auto_sequence,
+  output      [31:0]      sequence_offset,
+
+  output      [ 1:0]      auto_seq0,
+  output      [ 1:0]      auto_seq1,
+  output      [ 1:0]      auto_seq2,
+  output      [ 1:0]      auto_seq3,
+
+  output      [ 1:0]      manual_select,
+
   // processor interface
 
   input                   up_rstn,
@@ -69,9 +84,17 @@ module axi_laser_driver_regmap #(
   reg   [2:0]     up_irq_source = 3'b000;
   reg             up_driver_otw_n_int = 1'b1;
 
+  reg             up_sequence_en = 1'b0;
+  reg             up_auto_sequence = 1'b1;
+  reg   [31:0]    up_sequence_offset = 32'b1;
+  reg   [ 1:0]    up_auto_seq0 = 2'b00;
+  reg   [ 1:0]    up_auto_seq1 = 2'b01;
+  reg   [ 1:0]    up_auto_seq2 = 2'b10;
+  reg   [ 1:0]    up_auto_seq3 = 2'b11;
+  reg   [ 1:0]    up_manual_select = 2'b00;
+
   // internal signals
 
-  wire            clk;
   wire            up_wreq_int_s;
   wire            up_rreq_int_s;
   wire            up_driver_otw_n_s;
@@ -81,8 +104,6 @@ module axi_laser_driver_regmap #(
 
   wire            up_driver_otw_n_enter_s;
   wire            up_driver_otw_n_exit_s;
-
-  assign clk = up_clk;
 
   // map the laser driver registers into the address space
 
@@ -94,6 +115,14 @@ module axi_laser_driver_regmap #(
       up_wack <= 1'b0;
       up_driver_en_n <= 1'b1;   // by default laser is disabled
       up_irq_mask <= 3'b111;
+      up_sequence_en <= 1'b0;
+      up_auto_sequence <= 1'b1;
+      up_sequence_offset <= 32'b0;
+      up_auto_seq0 <= 2'b00;
+      up_auto_seq1 <= 2'b01;
+      up_auto_seq2 <= 2'b10;
+      up_auto_seq3 <= 2'b11;
+      up_manual_select <= 2'b00;
     end else begin
       up_wack <= up_wreq_int_s;
       if ((up_wreq_int_s == 1'b1) && (up_waddr[3:0] == 4'h0)) begin
@@ -101,6 +130,22 @@ module axi_laser_driver_regmap #(
       end
       if ((up_wreq_int_s == 1'b1) && (up_waddr[3:0] == 4'h8)) begin
         up_irq_mask <= up_wdata[2:0];
+      end
+      if ((up_wreq_int_s == 1'b1) && (up_waddr[3:0] == 4'hB)) begin
+        up_sequence_en <= up_wdata[0];
+        up_auto_sequence <= up_wdata[1];
+      end
+      if ((up_wreq_int_s == 1'b1) && (up_waddr[3:0] == 4'hC)) begin
+        up_sequence_offset <= up_wdata;
+      end
+      if ((up_wreq_int_s == 1'b1) && (up_waddr[3:0] == 4'hD)) begin
+        up_auto_seq0 <= up_wdata[1:0];
+        up_auto_seq1 <= up_wdata[5:4];
+        up_auto_seq2 <= up_wdata[9:8];
+        up_auto_seq3 <= up_wdata[13:12];
+      end
+      if ((up_wreq_int_s == 1'b1) && (up_waddr[3:0] == 4'hE)) begin
+        up_sequence_offset <= up_wdata[1:0];
       end
     end
   end
@@ -113,12 +158,17 @@ module axi_laser_driver_regmap #(
       up_rack <= up_rreq_int_s;
       if (up_rreq_int_s == 1'b1) begin
         case (up_raddr[4:0])
-          4'h0: up_rdata <= {31'h0, up_driver_en_n};
-          4'h1: up_rdata <= {31'h0, up_driver_otw_n_s};
-          4'h2: up_rdata <= up_ext_clk_count;
-          4'h8: up_rdata <= {29'h0, up_irq_mask};
-          4'h9: up_rdata <= {29'h0, up_irq_source};
-          4'hA: up_rdata <= {29'h0, up_irq_pending_s};
+          5'h00: up_rdata <= {31'h0, up_driver_en_n};
+          5'h01: up_rdata <= {31'h0, up_driver_otw_n_s};
+          5'h02: up_rdata <= up_ext_clk_count;
+          5'h08: up_rdata <= {29'h0, up_irq_mask};
+          5'h09: up_rdata <= {29'h0, up_irq_source};
+          5'h0A: up_rdata <= {29'h0, up_irq_pending_s};
+          5'h0B: up_rdata <= {30'h0, up_auto_sequence, up_sequence_en};
+          5'h0C: up_rdata <= up_sequence_offset;
+          5'h0D: up_rdata <= {16'h0, up_auto_seq3, 2'b0, up_auto_seq2, 2'b0, up_auto_seq1, 2'b0, up_auto_seq0};
+          5'h0E: up_rdata <= {30'h0, up_manual_select};
+
           default: up_rdata <= 0;
         endcase
       end else begin
@@ -179,5 +229,42 @@ module axi_laser_driver_regmap #(
     .out_clk (up_clk),
     .out_resetn (1'b1),
     .out_bits (up_pulse));
+
+  sync_bits #(
+    .NUM_OF_BITS (2),
+    .ASYNC_CLK (1))
+  i_sequence_control_sync (
+    .in_bits ({up_auto_sequence, up_sequence_en}),
+    .out_clk (clk),
+    .out_resetn (1'b1),
+    .out_bits ({auto_sequence, sequence_en}));
+
+  sync_bits #(
+    .NUM_OF_BITS (10),
+    .ASYNC_CLK (1))
+  i_sequencer_sync (
+    .in_bits ({up_auto_seq3,
+               up_auto_seq2,
+               up_auto_seq1,
+               up_auto_seq0,
+               up_manual_select
+               }),
+    .out_clk (clk),
+    .out_resetn (1'b1),
+    .out_bits ({auto_seq3,
+                auto_seq2,
+                auto_seq1,
+                auto_seq0,
+                manual_select
+                }));
+
+  sync_bits #(
+    .NUM_OF_BITS (32),
+    .ASYNC_CLK (1))
+  i_sequence_offset_sync (
+    .in_bits (up_sequence_offset),
+    .out_clk (clk),
+    .out_resetn (1'b1),
+    .out_bits (sequence_offset));
 
 endmodule
