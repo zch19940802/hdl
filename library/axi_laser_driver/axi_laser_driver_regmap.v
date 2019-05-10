@@ -192,7 +192,7 @@ module axi_laser_driver_regmap #(
 
   assign up_irq_pending_s = ~up_irq_mask & up_irq_source;
   assign up_irq_trigger_s = {up_driver_otw_n_exit_s, up_driver_otw_n_enter_s, up_pulse};
-  assign up_irq_source_clear_s = (up_wreq_int_s == 1'b1 && up_waddr[3:0] == 4'h9) ? up_wdata[2:0] : 3'b000;
+  assign up_irq_source_clear_s = (up_wreq_int_s == 1'b1 && up_waddr[3:0] == 4'hA) ? up_wdata[2:0] : 3'b000;
 
   always @(posedge up_clk) begin
     if (up_rstn == 1'b0) begin
