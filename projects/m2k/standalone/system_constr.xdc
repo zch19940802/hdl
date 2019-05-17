@@ -70,6 +70,7 @@ create_clock -name clk_fpga_0 -period 36 [get_pins "i_system_wrapper/system_i/sy
 create_clock -name clk_fpga_1 -period  5 [get_pins "i_system_wrapper/system_i/sys_ps7/inst/PS7_i/FCLKCLK[1]"]
 create_clock -name clk_fpga_2 -period 10 [get_pins "i_system_wrapper/system_i/sys_ps7/inst/PS7_i/FCLKCLK[2]"]
 create_clock -name clk_fpga_3 -period 18 [get_pins "i_system_wrapper/system_i/sys_ps7/inst/PS7_i/FCLKCLK[3]"]
+create_clock -name spi_clk    -period 20 [get_pins -hier */EMIOSPI0SCLKO]
 
 set_false_path -from [get_clocks data_clk] -to [get_pins {i_system_wrapper/system_i/logic_analyzer/inst/data_m1_reg[0]/D}]
 

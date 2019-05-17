@@ -56,6 +56,8 @@ create_clock -name tx_div_clk     -period  8.00 [get_pins i_system_wrapper/syste
 create_clock -name rx_div_clk     -period  8.00 [get_pins i_system_wrapper/system_i/util_ad9371_xcvr/inst/i_xch_0/i_gthe4_channel/RXOUTCLK]
 create_clock -name rx_os_div_clk  -period  8.00 [get_pins i_system_wrapper/system_i/util_ad9371_xcvr/inst/i_xch_2/i_gthe4_channel/RXOUTCLK]
 
+create_clock -name spi_clk        -period 20.00 [get_pins -hier */EMIOSPI0SCLKO]
+
 # pin assignments for JESD204 lanes and reference clocks
 
 set_property  -dict {PACKAGE_PIN  G8   } [get_ports ref_clk0_p]                                       ; ## D04  FMC_HPC0_GBTCLK0_M2C_C_P

@@ -41,6 +41,7 @@ set_property  -dict {PACKAGE_PIN  Y26   IOSTANDARD LVCMOS25}               [get_
 # clocks
 create_clock -name adc_clk          -period 2.00    [get_ports adc_clk_p]
 create_clock -name adc_core_clk     -period 8.00    [get_pins i_system_wrapper/system_i/axi_ad9434/adc_clk]
+create_clock -name spi_clk          -period 20.00   [get_pins -hier */EMIOSPI0SCLKO]
 
 set_clock_groups -asynchronous -group [get_clocks adc_clk]
 set_clock_groups -asynchronous -group [get_clocks adc_core_clk]

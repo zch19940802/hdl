@@ -32,3 +32,4 @@ set_property -dict {PACKAGE_PIN Y26     IOSTANDARD LVCMOS25} [get_ports spi_sdio
 # clocks
 
 create_clock -name adc_clk      -period 3.33 [get_ports adc_clk_in_p]
+create_clock -name spi_clk      -period 20   [get_pins -hier */EMIOSPI0SCLKO]

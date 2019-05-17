@@ -47,6 +47,7 @@ create_clock -name tx_ref_clk   -period  1.60 [get_ports tx_ref_clk_p]
 create_clock -name rx_ref_clk   -period  1.60 [get_ports rx_ref_clk_p]
 create_clock -name tx_div_clk   -period  3.20 [get_pins i_system_wrapper/system_i/util_daq3_xcvr/inst/i_xch_0/i_gthe4_channel/TXOUTCLK]
 create_clock -name rx_div_clk   -period  3.20 [get_pins i_system_wrapper/system_i/util_daq3_xcvr/inst/i_xch_0/i_gthe4_channel/RXOUTCLK]
+create_clock -name spi_clk      -period 20.00 [get_pins -hier */EMIOSPI0SCLKO]
 
 # pin assignments below are for reference only and are ignored by the tool!
 

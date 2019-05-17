@@ -39,6 +39,7 @@ set_property  -dict {PACKAGE_PIN  AJ19  IOSTANDARD LVCMOS25} [get_ports adc_fd] 
 
 create_clock -name rx_ref_clk   -period  1.60 [get_ports rx_ref_clk_p]
 create_clock -name rx_div_clk   -period  6.40 [get_pins i_system_wrapper/system_i/util_fmcadc2_xcvr/inst/i_xch_0/i_gtxe2_channel/RXOUTCLK]
+create_clock -name spi_clk      -period 20.00 [get_pins -hier */EMIOSPI0SCLKO]
 
 set_property ASYNC_REG TRUE [get_cells -hier -filter {name =~ *sysref_en_m*}]
 set_false_path -to [get_cells -hier -filter {name =~ *sysref_en_m1*  && IS_SEQUENTIAL}]
