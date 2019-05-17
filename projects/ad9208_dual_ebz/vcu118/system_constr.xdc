@@ -81,6 +81,11 @@ create_clock -name rx_ref_clk_1   -period  1.33 [get_ports rx_ref_clk_1_p]
 # since GLBLCLK0 and GLBLCLK1 are not connected to global clock capable pins.
 create_clock -name global_clk_0   -period  2.66 [get_ports glbl_clk_0_p]
 
+# Create SPI clock
+create_generated_clock -name spi_clk  \
+  -source [get_pins i_system_wrapper/system_i/axi_spi/ext_spi_clk] \
+  -divide_by 2 [get_pins i_system_wrapper/system_i/axi_spi/sck_o]
+
 
 # Constraint SYSREFs 
 # Assumption is that REFCLK and SYSREF have similar propagation delay, 
