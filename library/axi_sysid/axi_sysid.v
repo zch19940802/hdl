@@ -30,12 +30,12 @@ module sys_id #(
   input           s_axi_rready);
 
 localparam          AXI_ADDRESS_WIDTH    = 8;
-localparam  [31:0]  CORE_VERSION         = {16'h0000,     /* MAJOR */
-                                              8'h01,      /* MINOR */
+localparam  [31:0]  CORE_VERSION         = {16'h0001,     /* MAJOR */
+                                              8'h00,      /* MINOR */
                                               8'h00};     /* PATCH */
 localparam  [31:0]  CORE_MAGIC           = 32'h53594944;  // SYID
 
-(* rom_style = "distributed" *) reg [ROM_WIDTH-1:0] SYS_ID_ROM [(2**ROM_ADDR_BITS)-1:0];
+(* rom_style = "distributed" *) reg [ROM_WIDTH-1:0] sys_id_rom [(2**ROM_ADDR_BITS)-1:0];
 
 reg                             up_wack = 'd0;
 reg   [31:0]                    up_rdata_s = 'd0;
@@ -47,6 +47,7 @@ reg   [ROM_ADDR_BITS-1:0]       up_sys_id_rom_addr = 'h0;
 reg                             rom_read_done = 'h0;
 
 wire                            up_clk;
+wire                            up_rstn;
 wire                            up_rreq_s;
 wire  [AXI_ADDRESS_WIDTH-1:0]   up_raddr_s;
 wire                            up_wreq_s;
@@ -54,14 +55,15 @@ wire  [AXI_ADDRESS_WIDTH-1:0]   up_waddr_s;
 wire  [31:0]                    up_wdata_s;
 
 assign up_clk = s_axi_aclk;
+assign up_rstn = s_axi_aresetn;
 
 initial
-  $readmemh(PATH_TO_FILE, SYS_ID_ROM, 0, (2**ROM_ADDR_BITS)-1);
+  $readmemh(PATH_TO_FILE, sys_id_rom, 0, (2**ROM_ADDR_BITS)-1);
 
 up_axi #(
   .ADDRESS_WIDTH(AXI_ADDRESS_WIDTH))
 i_up_axi (
-  .up_rstn (s_axi_aresetn),
+  .up_rstn (up_rstn),
   .up_clk (up_clk),
   .up_axi_awvalid (s_axi_awvalid),
   .up_axi_awaddr (s_axi_awaddr),
@@ -91,7 +93,7 @@ i_up_axi (
 
 //axi registers read
 always @(posedge up_clk) begin
-  if (s_axi_aresetn == 1'b0) begin
+  if (up_rstn == 1'b0) begin
     up_rack_s <= 'd0;
     up_rdata_s <= 'd0;
   end else begin
@@ -102,7 +104,7 @@ always @(posedge up_clk) begin
         8'h01: up_rdata_s <= ID;
         8'h02: up_rdata_s <= up_scratch;
         8'h03: up_rdata_s <= CORE_MAGIC;
-        8'h21: up_rdata_s <= SYS_ID_ROM [sys_id_rom_addr];
+        8'h21: up_rdata_s <= sys_id_rom [sys_id_rom_addr];
         default: begin
           up_rdata_s <= 'h0;
         end
@@ -115,7 +117,7 @@ end
 
 //axi registers write
 always @(posedge up_clk) begin
-  if (s_axi_aresetn == 1'b0) begin
+  if (up_rstn == 1'b0) begin
     up_wack <= 'd0;
     sys_id_rom_addr <= 'h0;
     up_scratch <= 'd0;
@@ -126,6 +128,7 @@ always @(posedge up_clk) begin
     end
     if ((up_wreq_s == 1'b1) && (up_waddr_s == 8'h22)) begin
       sys_id_rom_addr <= up_wdata_s;
+    //ROM address is automatically incremented after each ROM read
     end else if ((up_rreq_s == 1'b1) && (up_raddr_s == 8'h21)) begin
       sys_id_rom_addr <= sys_id_rom_addr + 'h1;
     end

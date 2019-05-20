@@ -239,6 +239,14 @@ ad_connect  sys_ps7/DMA2_REQ   axi_i2s_adi/DMA_REQ_RX
 ad_connect  sys_ps7/DMA2_ACK   axi_i2s_adi/DMA_ACK_RX
 ad_connect  sys_cpu_resetn     axi_i2s_adi/DMA_REQ_RX_RSTN
 
+
+# system id
+
+ad_ip_instance axi_sysid axi_sysid_0
+sysid_gen_init_file
+ad_ip_parameter axi_sysid_0 CONFIG.PATH_TO_FILE "[pwd]/mem_init.txt"
+ad_ip_parameter axi_sysid_0 CONFIG.ROM_ADDR_BITS 6
+
 # interrupts
 
 ad_connect  sys_concat_intc/dout  sys_ps7/IRQ_F2P
@@ -268,6 +276,6 @@ ad_cpu_interconnect 0x70e00000 axi_hdmi_core
 ad_cpu_interconnect 0x75c00000 axi_spdif_tx_core
 ad_cpu_interconnect 0x77600000 axi_i2s_adi
 ad_cpu_interconnect 0x41620000 axi_iic_fmc
+ad_cpu_interconnect 0x45000000 axi_sysid_0
 ad_mem_hp0_interconnect sys_cpu_clk sys_ps7/S_AXI_HP0
 ad_mem_hp0_interconnect sys_cpu_clk axi_hdmi_dma/m_src_axi
-
