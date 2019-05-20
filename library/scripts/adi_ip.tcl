@@ -492,6 +492,13 @@ proc adi_init_bd_tcl {} {
   close $local_mk
 }
 
+##
+# adi_add_auto_fpga_spec_params - Performes a search for parameters defined in
+# the current HDL core. The searched names are defined in auto_set_param_list*
+# lists, from library/scripts/adi_xilinx_device_info_enc.tcl. For matching
+# parameters the adi_add_device_spec_param proces is called. Assigning/constraining
+# the parametrs to a predefined set of values.
+#
 proc adi_add_auto_fpga_spec_params {} {
 
   global auto_set_param_list
@@ -510,6 +517,14 @@ proc adi_add_auto_fpga_spec_params {} {
   }
 }
 
+##
+# adi_add_device_spec_param - Assign/constraint a parameter of the current core
+# to a predefined set/range of values. The set is defined in
+# library/scripts/adi_xilinx_device_info_enc.tcl.
+# These ranges are bounding the encoding values of parameters/specifications(FPGA)
+# like technology, family, speed grade, etc.
+# @param[ip_parameter] - Name of the HDL parameter. The list of accepted values for
+# the parameter are defined with the same name as the parameter's one(lower case), followed by "_list"
 proc adi_add_device_spec_param {ip_param} {
 
   set cc [ipx::current_core]
