@@ -120,6 +120,10 @@ ad_ip_parameter axi_ad9371_rx_dma CONFIG.ASYNC_CLK_REQ_SRC 1
 ad_ip_parameter axi_ad9371_rx_dma CONFIG.DMA_2D_TRANSFER 0
 ad_ip_parameter axi_ad9371_rx_dma CONFIG.DMA_DATA_WIDTH_SRC [expr 32*$RX_NUM_OF_LANES]
 
+
+ad_ip_instance axi_fir_filter axi_fir_decimator
+ad_ip_parameter axi_fir_decimator CONFIG.NUM_OF_CHANNELS 4
+
 # adc-os peripherals
 
 ad_ip_instance axi_clkgen axi_ad9371_rx_os_clkgen
@@ -280,10 +284,15 @@ ad_connect  axi_ad9371_rx_jesd/rx_data_tvalid rx_ad9371_tpl_core/link_valid
 ad_connect  axi_ad9371_rx_clkgen/clk_0 util_ad9371_rx_cpack/clk
 ad_connect  axi_ad9371_rx_jesd_rstgen/peripheral_reset util_ad9371_rx_cpack/reset
 
-ad_connect rx_ad9371_tpl_core/adc_valid_0 util_ad9371_rx_cpack/fifo_wr_en
+connect_bd_net [get_bd_pins axi_fir_decimator/aclk] [get_bd_pins axi_ad9371_rx_clkgen/clk_0]
+connect_bd_net [get_bd_pins axi_fir_decimator/filter_active] [get_bd_pins axi_ad9371_rx_jesd_rstgen/peripheral_aresetn]
+
+ad_connect rx_ad9371_tpl_core/adc_valid_0 axi_fir_decimator/s_axis_data_tvalid
+ad_connect axi_fir_decimator/m_axis_data_tvalid util_ad9371_rx_cpack/fifo_wr_en
 for {set i 0} {$i < $RX_NUM_OF_CONVERTERS} {incr i} {
   ad_connect  rx_ad9371_tpl_core/adc_enable_$i util_ad9371_rx_cpack/enable_$i
-  ad_connect  rx_ad9371_tpl_core/adc_data_$i util_ad9371_rx_cpack/fifo_wr_data_$i
+  ad_connect  rx_ad9371_tpl_core/adc_data_$i axi_fir_decimator/channel_${i}_in
+  ad_connect  axi_fir_decimator/channel_${i}_out util_ad9371_rx_cpack/fifo_wr_data_$i
 }
 ad_connect  rx_ad9371_tpl_core/adc_dovf util_ad9371_rx_cpack/fifo_wr_overflow
 
