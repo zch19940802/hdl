@@ -153,6 +153,12 @@ proc ad_ip_parameter {pname ptype pdefault {phdl true} {properties {}}} {
 ###################################################################################################
 ###################################################################################################
 
+##
+# adi_add_auto_fpga_spec_params - Adds the generic ADI spec parameters to the
+# current IP, with the help of adi_add_device_spec_param.
+# The spec parameter list is auto_gen_param_list, from
+# library/scripts/adi_intel_device_info_enc.tcl.
+#
 proc adi_add_auto_fpga_spec_params {} {
 
     global ad_hdl_dir
@@ -170,6 +176,22 @@ proc adi_add_auto_fpga_spec_params {} {
 
 ###################################################################################################
 
+##
+# adi_add_device_spec_param - Assign/constraint a parameter of the current core
+# to a predefined set/range of values. The set is defined in
+# library/scripts/adi_intel_device_info_enc.tcl.
+# These ranges are bounding the encoding values of parameters/specifications(FPGA)
+# like technology, family, speed grade, etc.
+# In Intel callback flow, one cannot directly change a parameter value, the value
+# can only be calculated/deduced from the environment.
+# Adding a second parameter with the same name followed by "_MANUAL", will add
+# in the environment the desired value that is still constrained to a predefined set.
+# Having the second parameter is not enough, to activate the manual overwriting of
+# a parameter one must call the adi_add_indep_spec_params_overwrite process.
+# @param[param] - Name of the HDL parameter. The list of accepted values for
+# the parameter are defined with the same name as the parameter's one(lower case),
+# followed by "_list"
+#
 proc adi_add_device_spec_param {param} {
 
     global auto_gen_param_list
@@ -217,6 +239,10 @@ proc adi_add_device_spec_param {param} {
 
 ###################################################################################################
 
+##
+# adi_add_indep_spec_params_overwrite - Creates a boolean type parameter that
+# allows ths user to manually overwrite parameter values.
+# @param[param] - Name of the HDL parameter.
 proc adi_add_indep_spec_params_overwrite {param} {
     add_parameter ${param}_USER_OVERWRITE BOOLEAN 0
     set_parameter_property ${param}_USER_OVERWRITE DISPLAY_NAME "Manually overwrite $param parameter"
@@ -225,7 +251,15 @@ proc adi_add_indep_spec_params_overwrite {param} {
 }
 
 ###################################################################################################
-
+##
+# info_param_validate - Used by IP Component in the Validation Phase(VALIDATION_CALLBACK)
+# In this process the IP parameters are compared against predefined parameter lists
+# in library/scripts/adi_intel_device_info_enc.tcl. For the matching parameters,
+# a search is started after a pair *_USER_OVERWRITE(boolean) parameter. If the pair
+# *_USER_OVERWRITE parameter is found, and its value is true, the target parameter
+# will take the value of the *_MANUAL parameter. Moreover, the GUI parameter is set as
+# writable in the qsys GUI (${parameter_name} is replaced by ${parameter_name}_MANUAL).
+#
 proc info_param_validate {} {
   global ad_hdl_dir
   global fpga_technology
